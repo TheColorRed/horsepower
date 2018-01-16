@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "system",
+    "target": "es2015",
+    "outFile": "lib/mutator.js",
+    // "outDir": "lib",
+    "removeComments": true,
+    "declaration": true,
+    // "declarationDir": "typings",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noImplicitAny": true,
+    "lib": [
+      "dom",
+      "es2015"
+    ]
+  },
+  "include": [
+    "src/core/**/*.ts",
+    "src/index.ts"
+  ]
+}
