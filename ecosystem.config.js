@@ -11,7 +11,7 @@ module.exports = {
     {
       name: 'Test Server',
       script: path.join(__dirname, 'public/index.js'),
-      watch: ['public']
+      watch: ['public/index.js']
     },
 
   ]

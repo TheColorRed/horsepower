@@ -42,8 +42,14 @@ namespace mutator {
             let items = Array.from(document.body.querySelectorAll<HTMLElement>(observer.selectors.join(',')))
             items.forEach(item => component.createNewComponent(item, observer.component, mutation))
           })
+          if (mutation.addedNodes.length > 0) {
+            component.components.filter(c => c.element == target).forEach(c => { c.childrenAdded(mutation.addedNodes) })
+          }
+          if (mutation.removedNodes.length > 0) {
+            component.components.filter(c => c.element == target).forEach(c => c.childrenRemoved(mutation.removedNodes))
+          }
         } else if (mutation.type == 'attributes') {
-          component.components.filter((comp: any) => comp.element == target).forEach(c => {
+          component.components.filter(comp => comp.element == target).forEach(c => {
             if (mutation.attributeName) {
               let newattr = target.getAttribute(mutation.attributeName)
               if (c.hasCreated && mutation.oldValue != newattr) {
@@ -66,7 +72,7 @@ namespace mutator {
     public static observers: Observer<any>[] = []
     public static components: component[] = []
 
-    protected readonly element: HTMLElement
+    public readonly element: HTMLElement
     public hasCreated: boolean = false
 
     public constructor(element?: HTMLElement) {
@@ -77,8 +83,12 @@ namespace mutator {
     public created(mutation?: MutationRecord) { }
     public modified(oldValue: any, newValue: any, attr: any, mutation?: MutationRecord) { }
     public deleted(mutation?: MutationRecord) { }
+    public childrenAdded(children: NodeList) { }
+    public childrenRemoved(children: NodeList) { }
     public tick(): any { }
     public static tick(): any { }
+
+    public get childCount(): number { return this.element.childNodes.length }
 
     public find(selector: string) {
       return this.element.querySelector(selector)
@@ -112,7 +122,7 @@ namespace mutator {
     public css(items: object): this
     public css(...args: any[]) {
       if (args[0] instanceof Object) {
-        for (let key in args[0]) { this.element.style[key] = args[0][key] }
+        for (let key in args[0]) { (<any>this.element.style)[key] = args[0][key] }
       } else {
         this.element.style[args[0]] = args[1]
       }
@@ -139,18 +149,61 @@ namespace mutator {
 
     public insert(position: InsertPosition, html: string | HTMLElement) {
       if (html instanceof HTMLElement) {
-        this.element.insertAdjacentElement(position, html)
+        return this.element.insertAdjacentElement(position, html)
       } else if (typeof html == 'string') {
-        this.element.insertAdjacentHTML(position, html)
+        return this.element.insertAdjacentHTML(position, html)
       }
     }
 
     public append(html: string | HTMLElement) {
-      this.insert('beforeend', html)
+      return this.insert('beforeend', html)
+    }
+
+    public appendElement<T extends HTMLElement>(element: string, content?: string): T {
+      let info = this.parseQuerySelector(element)
+      let el = document.createElement(element)
+      info.classList.length > 0 && el.classList.add(...info.classList)
+      el.textContent = content ? content : ''
+      this.append(el)
+      return el as T
+    }
+
+    public prependElement<T extends HTMLElement>(element: string, content?: string): T {
+      let info = this.parseQuerySelector(element)
+      let el = document.createElement(info.element)
+      info.classList.length > 0 && el.classList.add(...info.classList)
+      el.innerHTML = content ? content : ''
+      this.prepend(el)
+      return el as T
     }
 
     public prepend(html: string | HTMLElement) {
-      this.insert('beforeend', html)
+      return this.insert('afterbegin', html)
+    }
+
+    public removeLast() {
+      let element = this.element.children.item(this.element.children.length - 1) as HTMLElement
+      element && this.removeElement(element)
+    }
+
+    public removeFirst() {
+      let element = this.element.children.item(0) as HTMLElement
+      element && this.removeElement(element)
+    }
+
+    public removeElement(element: HTMLElement) {
+      element.parentElement && element.parentElement.removeChild(element)
+      this.removeEmptyElements()
+    }
+
+    private removeEmptyElements() {
+      let i = component.components.length
+      while (i--) {
+        let comp = component.components[i]
+        if (!comp.element) {
+          component.components.splice(i, 1)
+        }
+      }
     }
 
     public getJson(key: string, fallback: Object = {}) {
@@ -160,6 +213,18 @@ namespace mutator {
       } catch (e) {
         return fallback
       }
+    }
+
+    private parseQuerySelector(selector: string) {
+      let obj: { classList: string[], id: string, element: string } = {
+        classList: [],
+        id: '',
+        element: 'div'
+      }
+      obj.classList = (selector.match(/\.[a-z-_0-9]+/g) || []).map(v => v.replace('.', ''))
+      obj.element = selector.toLowerCase().split(/[^a-z]/)[0] || 'div'
+      return obj
+      // console.log(matches)
     }
 
     public findComponent<T extends component>(comp: ComponentType<T>, callback?: (comp: T) => void) {
@@ -235,7 +300,7 @@ namespace mutator {
       }
     }
 
-    private static runStaticTick<T extends component>(comp: ComponentType<T>, tick?: number) {
+    public static runStaticTick<T extends component>(comp: ComponentType<T>, tick?: number) {
       if (typeof tick == 'number') {
         setTimeout(() => {
           let tick = comp.tick(this.components.filter(c => c instanceof comp))
