@@ -16,6 +16,7 @@
     ]
   },
   "include": [
+    "src/util/**/*.ts",
     "src/core/**/*.ts",
     "src/index.ts"
   ]

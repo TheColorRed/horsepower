@@ -1,25 +1,33 @@
 /// <reference path="../../lib/mutator.d.ts"/>
 
-class blockchain extends mutator.component {
+class blockchain extends mutator.websocket {
 
-  childrenAdded(children) {
-    let maxItems = 100
+  // Configure the websocket settings
+  config() { return { url: 'wss://www.bitmex.com/realtime?subscribe=trade:XBTUSD' } }
+
+  // When children are added, remove children at the end of the list
+  // We will end up with a maximum of 50 items in this list
+  childrenAdded() {
+    let maxItems = 50
     if (this.childCount > maxItems) {
-      let toRemove = this.childCount - maxItems
-      while (toRemove--) {
+      let totalToRemove = this.childCount - maxItems
+      while (totalToRemove--) {
         this.removeLast()
       }
     }
   }
 
+  // Once created, we can filter the socket messages
+  // In this case we only care about messages with the key "table"
   created() {
-    let ws = new WebSocket('wss://www.bitmex.com/realtime?subscribe=trade:XBTUSD')
-
-    ws.addEventListener('message', msg => {
-      let res = JSON.parse(msg.data)
+    this.filter('table', (res) => {
       res.data.forEach(item => {
-        // let date = new Date(item.timestamp)
-        this.prependElement(`div${item.side.toLowerCase() == 'buy' ? '.in' : '.out'}`, `
+        // Create a string element to generate an html element
+        let element = `${item.side.toLowerCase() == 'buy' ? '.in' : '.out'}`
+        // We will either pass one of the following:
+        // .in   ->   <div class="in"></div>
+        // .out  ->   <div class="out"></div>
+        this.prependElement(element, `
           <span>${(item.grossValue / 100000000).toFixed(8)}</span>
           <span>${(item.price).toFixed(2)}</span>
           <span>${this.time(item.timestamp)}</span>
