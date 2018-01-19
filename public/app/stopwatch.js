@@ -21,8 +21,9 @@ class stopwatch extends mutator.component {
   }
 }
 
-class stopwatchbutton extends mutator.component {
-  click() {
+class stopwatchbutton extends mutator.button {
+
+  clicked() {
     this.parentComponent(stopwatchwrapper, item => {
       item.childComponent(stopwatch, item => {
         this.toggle('data-running')

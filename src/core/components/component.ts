@@ -7,7 +7,13 @@ namespace mutator {
   }
 
   export interface component {
-    click(): void
+    ajax(data: any): void
+    created(mutation?: MutationRecord): void
+    modified(oldValue: any, newValue: any, attr: any, mutation?: MutationRecord): void
+    deleted(mutation?: MutationRecord): void
+    childrenAdded(children: NodeList): void
+    childrenRemoved(children: NodeList): void
+    tick(): any
   }
 
   export class Observer<T extends component> {
@@ -34,13 +40,16 @@ namespace mutator {
     }
 
     // Overwriteable methods
-    public created(mutation?: MutationRecord) { }
-    public modified(oldValue: any, newValue: any, attr: any, mutation?: MutationRecord) { }
-    public deleted(mutation?: MutationRecord) { }
-    public childrenAdded(children: NodeList) { }
-    public childrenRemoved(children: NodeList) { }
-    public tick(): any { }
-    public static tick(): any { }
+    static tick(): any { }
+
+
+    public static getElementsComponent<T extends component>(comp: ComponentType<T>, element: HTMLElement) {
+      return this.components.find(c => c instanceof comp && c.element == element) as T
+    }
+
+    public static getElementsComponents<T extends component>(comp: ComponentType<T>, element: HTMLElement) {
+      return this.components.filter(c => c instanceof comp && c.element == element) as T[]
+    }
 
     public findComponent<T extends component>(comp: ComponentType<T>, callback?: (comp: T) => void) {
       let c = component.components.find(c => c instanceof comp) as T
@@ -88,18 +97,17 @@ namespace mutator {
       let item = this.components.find(c => c.element == element && c instanceof comp)
       if (!item) {
         let c = new comp(element)
-        c.created(mutation)
+        typeof c.created == 'function' && c.created(mutation)
         c.hasCreated = true
         let newval: any = null
         mutation.attributeName && (newval = element.getAttribute(mutation.attributeName))
-        this.components.filter(comp => comp.element == element).forEach(c => c.hasCreated && c.modified(mutation.oldValue, newval, mutation.attributeName, mutation))
+        this.components.filter(comp => comp.element == element).forEach(c => c.hasCreated && typeof c.modified == 'function' && c.modified(mutation.oldValue, newval, mutation.attributeName, mutation))
         // Run the individual ticker for the component
-        let tick = c.tick()
-        if (typeof tick == 'number') {
-          c.runTick(tick)
-        }
-        if (typeof c['click'] == 'function') {
-          c.element.addEventListener('click', c['click'].bind(c))
+        if (typeof c.tick == 'function') {
+          let tick = c.tick()
+          if (typeof tick == 'number') {
+            c.runTick(tick)
+          }
         }
       }
     }

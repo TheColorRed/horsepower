@@ -1,8 +1,8 @@
 namespace mutator {
 
   export interface dom {
-    confirm: (value: string) => void
-    check: (checked: boolean) => void
+    clicked(button: number): void
+    doubleClicked(button: number): void
   }
 
   export abstract class dom {
@@ -10,44 +10,24 @@ namespace mutator {
     public readonly element: HTMLElement
     public get childCount(): number { return this.element.childNodes.length }
 
-    public get checked(): boolean {
-      if (this.element instanceof HTMLInputElement && this.element.getAttribute('type') == 'checkbox') {
-        return this.element.checked
-      }
-      return false
-    }
-
     public constructor(element?: HTMLElement) {
       this.element = !element ? document.createElement('div') : element
-      if (typeof this.confirm == 'function') {
-        if (this.element instanceof HTMLButtonElement ||
-          (this.element instanceof HTMLInputElement && ['button', 'submit', 'reset'].indexOf(this.element.getAttribute('type') || '') != -1)) {
-          this.element.addEventListener('click', this.onButtonConfirm.bind(this))
-        } else if (this.element instanceof HTMLInputElement || this.element instanceof HTMLTextAreaElement) {
-          this.element.addEventListener('keydown', this.onInputConfirm.bind(this))
-        }
+      if (typeof this.clicked == 'function') {
+        this.element.addEventListener('click', this.onClicked.bind(this))
       }
-      if (typeof this.check == 'function') {
-        if (this.element instanceof HTMLInputElement && this.element.getAttribute('type') == 'checkbox') {
-          this.element.addEventListener('click', this.onChecked.bind(this))
-        }
+      if (typeof this.doubleClicked == 'function') {
+        this.element.addEventListener('dblclick', this.onDoubleClicked.bind(this))
       }
     }
 
-    protected onInputConfirm(e: KeyboardEvent) {
-      if (e.keyCode == 13) {
-        e.preventDefault()
-        this.confirm((<any>this.element).value)
-      }
-    }
-
-    protected onButtonConfirm(e: KeyboardEvent) {
+    private onClicked(e: MouseEvent) {
       e.preventDefault()
-      this.confirm((<any>this.element).value)
+      this.clicked(e.button)
     }
 
-    protected onChecked(e: MouseEvent) {
-      this.check((<any>this.element).checked)
+    private onDoubleClicked(e: MouseEvent) {
+      e.preventDefault()
+      this.doubleClicked(e.button)
     }
 
     public find(selector: string) {
@@ -62,7 +42,7 @@ namespace mutator {
       return item
     }
 
-    public setAttribute(key: string, value: string) {
+    public setAttribute(key: string, value: any) {
       this.element.setAttribute(key, value)
     }
 
@@ -72,13 +52,6 @@ namespace mutator {
 
     public textContent(value: any) {
       this.element.textContent = value
-      return this
-    }
-
-    public value(val: any) {
-      if (this.element instanceof HTMLInputElement) {
-        this.element.value = val
-      }
       return this
     }
 
@@ -128,6 +101,18 @@ namespace mutator {
       return this.insert('beforeend', html)
     }
 
+    public prepend<T extends component>(html: string | HTMLElement | component | ComponentType<T>) {
+      return this.insert('afterbegin', html)
+    }
+
+    public before<T extends component>(html: string | HTMLElement | component | ComponentType<T>) {
+      return this.insert('beforebegin', html)
+    }
+
+    public after<T extends component>(html: string | HTMLElement | component | ComponentType<T>) {
+      return this.insert('afterend', html)
+    }
+
     public appendElement<T extends HTMLElement>(element: string, content?: string): T {
       let el = this.makeElement<T>(element, content)
       this.append(el)
@@ -140,18 +125,26 @@ namespace mutator {
       return el
     }
 
+    public beforeElement<T extends HTMLElement>(element: string, content?: string): T {
+      let el = this.makeElement<T>(element, content)
+      this.before(el)
+      return el
+    }
+
+    public afterElement<T extends HTMLElement>(element: string, content?: string): T {
+      let el = this.makeElement<T>(element, content)
+      this.after(el)
+      return el
+    }
+
     public makeElement<T extends HTMLElement>(element: string, content?: string): T {
       let info = this.parseQuerySelector(element)
       let el = document.createElement(info.element)
       info.id.length > 0 && (el.id = info.id)
       info.classList.length > 0 && el.classList.add(...info.classList)
       info.attributes.forEach(a => a.key ? el.setAttribute(a.key, a.value) : el.setAttribute(a.value, a.value))
-      el.innerHTML = content ? content : ''
+      el.innerHTML = typeof content !== 'undefined' ? content : ''
       return el as T
-    }
-
-    public prepend<T extends component>(html: string | HTMLElement | component | ComponentType<T>) {
-      return this.insert('afterbegin', html)
     }
 
     public removeFirst() {
@@ -173,8 +166,8 @@ namespace mutator {
       let el: HTMLElement
       if (!element) { el = this.element }
       else { el = element instanceof HTMLElement ? element : element.element }
-      el && el.parentElement && el.parentElement.removeChild(el)
-      el && el.parentElement && component.components.forEach((c: any) => c.element == el && (c.element = null))
+      el && el.remove()
+      el && component.components.forEach((c: any) => c.element == el && (c.element = null))
       this.removeEmptyComponents()
     }
 

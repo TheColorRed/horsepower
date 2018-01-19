@@ -39,17 +39,17 @@ namespace mutator {
             items.forEach(item => component.createNewComponent(item, observer.component, mutation))
           })
           if (mutation.addedNodes.length > 0) {
-            component.components.filter(c => c.element == target).forEach(c => { c.childrenAdded(mutation.addedNodes) })
+            component.components.filter(c => c.element == target).forEach(c => { typeof c.childrenAdded == 'function' && c.childrenAdded(mutation.addedNodes) })
           }
           if (mutation.removedNodes.length > 0) {
-            component.components.filter(c => c.element == target).forEach(c => c.childrenRemoved(mutation.removedNodes))
+            component.components.filter(c => c.element == target).forEach(c => typeof c.childrenRemoved == 'function' && c.childrenRemoved(mutation.removedNodes))
           }
         } else if (mutation.type == 'attributes') {
           component.components.filter(comp => comp.element == target).forEach(c => {
             if (mutation.attributeName) {
               let newattr = target.getAttribute(mutation.attributeName)
               if (c.hasCreated && mutation.oldValue != newattr) {
-                c.modified(mutation.oldValue, newattr, mutation.attributeName, mutation)
+                typeof c.modified == 'function' && c.modified(mutation.oldValue, newattr, mutation.attributeName, mutation)
               }
             }
           })

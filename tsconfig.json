@@ -12,7 +12,8 @@
     "noImplicitAny": true,
     "lib": [
       "dom",
-      "es2015"
+      "dom.iterable",
+      "es2015",
     ]
   },
   "include": [

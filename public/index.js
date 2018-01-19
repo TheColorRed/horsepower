@@ -10,6 +10,17 @@ app.use('/mutator', express.static(path.join(__dirname, '../lib')))
 app.use('/app', express.static(path.join(__dirname, './app')))
 
 
+app.all(/\/ajax\/.*/, (req, res) => {
+  res.json({
+    array: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+    object: {
+      a: true,
+      b: ['a', 'b', 'c'],
+      c: [{ name: 'Billy' }, { name: 'Bob' }, { name: 'Joe' }]
+    }
+  })
+})
+
 app.get(/\.html$/, (req, res) => {
   res.sendFile(path.join(__dirname, 'html', path.parse(req.path).base))
 })
