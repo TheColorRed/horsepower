@@ -1,19 +1,65 @@
 namespace mutator {
+
+  export interface dom {
+    confirm: (value: string) => void
+    check: (checked: boolean) => void
+  }
+
   export abstract class dom {
 
     public readonly element: HTMLElement
     public get childCount(): number { return this.element.childNodes.length }
 
+    public get checked(): boolean {
+      if (this.element instanceof HTMLInputElement && this.element.getAttribute('type') == 'checkbox') {
+        return this.element.checked
+      }
+      return false
+    }
+
     public constructor(element?: HTMLElement) {
       this.element = !element ? document.createElement('div') : element
+      if (typeof this.confirm == 'function') {
+        if (this.element instanceof HTMLButtonElement ||
+          (this.element instanceof HTMLInputElement && ['button', 'submit', 'reset'].indexOf(this.element.getAttribute('type') || '') != -1)) {
+          this.element.addEventListener('click', this.onButtonConfirm.bind(this))
+        } else if (this.element instanceof HTMLInputElement || this.element instanceof HTMLTextAreaElement) {
+          this.element.addEventListener('keydown', this.onInputConfirm.bind(this))
+        }
+      }
+      if (typeof this.check == 'function') {
+        if (this.element instanceof HTMLInputElement && this.element.getAttribute('type') == 'checkbox') {
+          this.element.addEventListener('click', this.onChecked.bind(this))
+        }
+      }
+    }
+
+    protected onInputConfirm(e: KeyboardEvent) {
+      if (e.keyCode == 13) {
+        e.preventDefault()
+        this.confirm((<any>this.element).value)
+      }
+    }
+
+    protected onButtonConfirm(e: KeyboardEvent) {
+      e.preventDefault()
+      this.confirm((<any>this.element).value)
+    }
+
+    protected onChecked(e: MouseEvent) {
+      this.check((<any>this.element).checked)
     }
 
     public find(selector: string) {
       return this.element.querySelector(selector)
     }
 
-    public closest(selector: string) {
-      return this.element.closest(selector)
+    public closest(selector: string, callback: (item: HTMLElement) => void) {
+      let item = this.element.closest(selector) as HTMLElement
+      if (item && typeof callback == 'function') {
+        callback(item)
+      }
+      return item
     }
 
     public setAttribute(key: string, value: string) {
@@ -123,8 +169,10 @@ namespace mutator {
       element && this.removeElement(element)
     }
 
-    public removeElement(element: HTMLElement | component) {
-      let el = element instanceof HTMLElement ? element : element.element
+    public removeElement(element?: HTMLElement | component) {
+      let el: HTMLElement
+      if (!element) { el = this.element }
+      else { el = element instanceof HTMLElement ? element : element.element }
       el && el.parentElement && el.parentElement.removeChild(el)
       el && el.parentElement && component.components.forEach((c: any) => c.element == el && (c.element = null))
       this.removeEmptyComponents()
@@ -148,6 +196,22 @@ namespace mutator {
       } catch (e) {
         return fallback
       }
+    }
+
+    public addClass(...classList: string[]) {
+      this.element.classList.add(...classList)
+    }
+
+    public removeClass(...classList: string[]) {
+      this.element.classList.remove(...classList)
+    }
+
+    public toggleClass(...classList: string[]) {
+      classList.forEach(c => this.element.classList.toggle(c))
+    }
+
+    public enableClass(enable: boolean, ...classList: string[]) {
+      enable ? this.addClass(...classList) : this.removeClass(...classList)
     }
 
     public parseQuerySelector(selector: string) {

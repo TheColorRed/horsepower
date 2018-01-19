@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Checklist</title>
+  <script src="/mutator/mutator.js"></script>
+  <script src="/app/checklist.js"></script>
+  <style>
+    #checklist {
+      list-style-type: none;
+    }
+
+    #checklist>li.completed span {
+      text-decoration: line-through;
+    }
+  </style>
+</head>
+
+<body>
+  <p>
+    <input type="text" id="newitem">
+  </p>
+  <ul id="checklist"></ul>
+  <p>
+    <input type="button" id="remove" value="Remove Completed">
+  </p>
+</body>
+
+</html>
