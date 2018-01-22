@@ -9,8 +9,7 @@ namespace mutator {
           (this.element instanceof HTMLInputElement && ['button', 'submit', 'reset'].indexOf(this.element.getAttribute('type') || '') != -1)) {
           this.element.addEventListener('click', this.onButtonAccept.bind(this))
         }
-      }
-      if (typeof this.reject == 'function') {
+      } else if (typeof this.reject == 'function') {
         if (this.element instanceof HTMLButtonElement ||
           (this.element instanceof HTMLInputElement && ['button', 'submit', 'reset'].indexOf(this.element.getAttribute('type') || '') != -1)) {
           this.element.addEventListener('click', this.onButtonReject.bind(this))

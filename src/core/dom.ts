@@ -5,13 +5,12 @@ namespace mutator {
     doubleClicked(button: number): void
   }
 
-  export abstract class dom {
+  export abstract class dom extends component {
 
-    public readonly element: HTMLElement
     public get childCount(): number { return this.element.childNodes.length }
 
     public constructor(element?: HTMLElement) {
-      this.element = !element ? document.createElement('div') : element
+      super(element)
       if (typeof this.clicked == 'function') {
         this.element.addEventListener('click', this.onClicked.bind(this))
       }

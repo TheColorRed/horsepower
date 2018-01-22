@@ -18,6 +18,8 @@
   },
   "include": [
     "src/util/**/*.ts",
+    "src/component.ts",
+    "src/dom.ts",
     "src/core/**/*.ts",
     "src/index.ts"
   ]

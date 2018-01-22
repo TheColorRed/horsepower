@@ -5,7 +5,7 @@ namespace mutator {
     reject(value: string): void
   }
 
-  export class form extends component {
+  export class form extends dom {
 
     public constructor(element?: HTMLElement) {
       super(element)

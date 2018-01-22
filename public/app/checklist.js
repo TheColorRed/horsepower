@@ -10,6 +10,11 @@ class add extends mutator.input {
       this.value('')
     })
   }
+
+  reject() {
+    this.value('')
+  }
+
 }
 
 class checkbox extends mutator.checkbox {

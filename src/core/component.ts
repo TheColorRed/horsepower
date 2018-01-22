@@ -26,7 +26,9 @@ namespace mutator {
     }
   }
 
-  export abstract class component extends dom {
+  export abstract class component {
+
+    public readonly element: HTMLElement
 
     public static observer: MutationObserver
     public static observers: Observer<any>[] = []
@@ -35,8 +37,8 @@ namespace mutator {
     public hasCreated: boolean = false
 
     public constructor(element?: HTMLElement) {
-      super(element)
       component.components.push(this)
+      this.element = !element ? document.createElement('div') : element
     }
 
     // Overwriteable methods

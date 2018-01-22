@@ -2,8 +2,8 @@
     "name": "mutator",
     "version": "1.0.0",
     "description": "",
-    "main": "lib/mutator.js",
-    "types": "lib/index.d.ts",
+    "main": "./lib/mutator.js",
+    "types": "./lib/mutator.d.ts",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
