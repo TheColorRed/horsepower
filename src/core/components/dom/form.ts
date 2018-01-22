@@ -1,4 +1,4 @@
-namespace mutator {
+namespace hp {
 
   export interface form {
     accept(value: string): void

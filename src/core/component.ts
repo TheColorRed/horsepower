@@ -1,4 +1,4 @@
-namespace mutator {
+namespace hp {
 
   export interface ComponentType<T extends component> {
     new(element?: HTMLElement): T

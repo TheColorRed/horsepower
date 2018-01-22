@@ -1,15 +1,17 @@
 {
-    "name": "mutator",
-    "version": "1.0.0",
+    "name": "horsepower",
+    "version": "0.0.1",
     "description": "",
-    "main": "./lib/mutator.js",
-    "types": "./lib/mutator.d.ts",
+    "main": "./lib/hp.min.js",
+    "types": "./lib/hp.d.ts",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "",
     "license": "ISC",
-    "dependencies": {
-        "express": "^4.16.2"
+    "devDependencies": {
+        "express": "^4.16.2",
+        "uglify-js": "^3.3.8",
+        "watch": "^1.0.2"
     }
 }

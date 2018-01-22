@@ -1,4 +1,4 @@
-namespace mutator {
+namespace hp {
 
   export interface checkbox {
     check(checked: boolean): void

@@ -1,6 +1,6 @@
-/// <reference path="../../lib/mutator.d.ts"/>
+/// <reference path="../../lib/hp.d.ts"/>
 
-class form extends mutator.form {
+class form extends hp.form {
   ajax(response) {
     response.array.forEach(number => this.afterElement('div', number))
     this.afterElement('div', response.object.a)
@@ -9,4 +9,4 @@ class form extends mutator.form {
   }
 }
 
-mutator.observe(form, 'form')
+hp.observe(form, 'form')

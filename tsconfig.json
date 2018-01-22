@@ -2,7 +2,7 @@
   "compilerOptions": {
     "module": "system",
     "target": "es2015",
-    "outFile": "lib/mutator.js",
+    "outFile": "lib/hp.js",
     // "outDir": "lib",
     "removeComments": true,
     "declaration": true,

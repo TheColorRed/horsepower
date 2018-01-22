@@ -1,6 +1,6 @@
-/// <reference path="../../lib/mutator.d.ts"/>
+/// <reference path="../../lib/hp.d.ts"/>
 
-class stopwatchwrapper extends mutator.component {
+class stopwatchwrapper extends hp.component {
   created() {
     this.append(`<div class="clock">0.0</div>
       <div class="btn-block">
@@ -9,7 +9,7 @@ class stopwatchwrapper extends mutator.component {
   }
 }
 
-class stopwatch extends mutator.component {
+class stopwatch extends hp.component {
   tick() {
     this.parentComponent(stopwatchwrapper, item => {
       item.childComponent(stopwatchbutton, btn => {
@@ -21,7 +21,7 @@ class stopwatch extends mutator.component {
   }
 }
 
-class stopwatchbutton extends mutator.button {
+class stopwatchbutton extends hp.button {
 
   clicked() {
     this.parentComponent(stopwatchwrapper, item => {
@@ -38,6 +38,6 @@ class stopwatchbutton extends mutator.button {
   }
 }
 
-mutator.observe(stopwatch, '.clock')
-mutator.observe(stopwatchwrapper, '.wrapper')
-mutator.observe(stopwatchbutton, 'input[type=button]')
+hp.observe(stopwatch, '.clock')
+hp.observe(stopwatchwrapper, '.wrapper')
+hp.observe(stopwatchbutton, 'input[type=button]')

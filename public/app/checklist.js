@@ -1,6 +1,6 @@
-/// <reference path="../../lib/mutator.d.ts"/>
+/// <reference path="../../lib/hp.d.ts"/>
 
-class add extends mutator.input {
+class add extends hp.input {
   // Bind the accpet action to the input box
   // This will bind the enter key to the element
   accept(value) {
@@ -17,7 +17,7 @@ class add extends mutator.input {
 
 }
 
-class checkbox extends mutator.checkbox {
+class checkbox extends hp.checkbox {
   // When the checkbox has been clicked/toggled add a class to the list item
   // The css will then display a strike through the element
   check(checked) {
@@ -25,7 +25,7 @@ class checkbox extends mutator.checkbox {
   }
 }
 
-class remove extends mutator.button {
+class remove extends hp.button {
   // When the accept button is clicked, we will remove all listitem components
   // where the checkbox component is checked
   clicked() {
@@ -37,11 +37,11 @@ class remove extends mutator.button {
   }
 }
 
-class listitem extends mutator.component { }
-class checklist extends mutator.component { }
+class listitem extends hp.component { }
+class checklist extends hp.component { }
 
-mutator.observe(add, '#newitem')
-mutator.observe(checkbox, 'input[type=checkbox]')
-mutator.observe(remove, 'input[type=button]')
-mutator.observe(checklist, '#checklist')
-mutator.observe(listitem, '#checklist > li')
+hp.observe(add, '#newitem')
+hp.observe(checkbox, 'input[type=checkbox]')
+hp.observe(remove, 'input[type=button]')
+hp.observe(checklist, '#checklist')
+hp.observe(listitem, '#checklist > li')

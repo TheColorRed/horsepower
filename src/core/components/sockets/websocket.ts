@@ -1,4 +1,4 @@
-namespace mutator {
+namespace hp {
 
   export class WebSocketEvent {
     public constructor(public event: string, public callback: (message: any) => void) { }

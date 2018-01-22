@@ -1,23 +1,12 @@
-// export * from './core/Component'
+namespace hp {
 
-// declare namespace mutator { }
-// declare var module: any
-// if (typeof module !== 'undefined' && module.exports) {
-//   module.exports = mutator
-// } else {
-//   (<any>window).mutator = mutator
-//   // document.addEventListener('DOMContentLoaded', e => libjs.domReady())
-// }
-
-namespace mutator {
-
-  let domloaded: boolean = false
+  let domLoaded: boolean = false
 
   export function observe<T extends component>(comp: ComponentType<T>, ...selectors: string[]) {
     component.observers.push(new Observer(comp, ...selectors))
     // Run the component global ticker
-    if (!domloaded) {
-      domloaded = true
+    if (!domLoaded) {
+      domLoaded = true
       document.addEventListener('DOMContentLoaded', () => {
         let componentExists = component.components.find(c => c instanceof comp)
         if (!componentExists) {

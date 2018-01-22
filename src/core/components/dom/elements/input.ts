@@ -1,4 +1,4 @@
-namespace mutator {
+namespace hp {
 
   export interface input {
     input(value: string): void

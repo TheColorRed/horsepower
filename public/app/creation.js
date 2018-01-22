@@ -1,6 +1,6 @@
-/// <reference path="../../lib/mutator.d.ts"/>
+/// <reference path="../../lib/hp.d.ts"/>
 
-class creation extends mutator.component {
+class creation extends hp.component {
 
   // Create a 'creation' ticker
   // All 'creation' components will share this static ticker
@@ -23,4 +23,4 @@ creation.count = 0
 
 // Create an observer to watch items with the class "test"
 // and watch for when they are added, removed or modified
-mutator.observe(creation, '.test')
+hp.observe(creation, '.test')

@@ -6,7 +6,7 @@ const app = express()
 
 // app.use(express.static(path.join(__dirname, 'html')))
 // app.use(express.static(path.join(__dirname, 'public')))
-app.use('/mutator', express.static(path.join(__dirname, '../lib')))
+app.use('/horsepower', express.static(path.join(__dirname, '../lib')))
 app.use('/app', express.static(path.join(__dirname, './app')))
 
 

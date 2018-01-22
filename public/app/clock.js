@@ -1,6 +1,6 @@
-/// <reference path="../../lib/mutator.d.ts"/>
+/// <reference path="../../lib/hp.d.ts"/>
 
-class clock extends mutator.component {
+class clock extends hp.component {
 
   tick() {
     this.setAttribute('data-date', Date.now())
@@ -19,4 +19,4 @@ class clock extends mutator.component {
 
 // Create an observer to watch items with the class "test"
 // and watch for when they are added, removed or modified
-mutator.observe(clock, '.clock')
+hp.observe(clock, '.clock')

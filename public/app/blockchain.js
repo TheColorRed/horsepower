@@ -1,6 +1,6 @@
-/// <reference path="../../lib/mutator.d.ts"/>
+/// <reference path="../../lib/hp.d.ts"/>
 
-class blockchain extends mutator.websocket {
+class blockchain extends hp.websocket {
 
   // Configure the websocket settings
   config() { return { url: 'wss://www.bitmex.com/realtime?subscribe=trade:XBTUSD' } }
@@ -43,4 +43,4 @@ class blockchain extends mutator.websocket {
 
 }
 
-mutator.observe(blockchain, '#blocks')
+hp.observe(blockchain, '#blocks')
