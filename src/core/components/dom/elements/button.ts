@@ -1,6 +1,6 @@
 namespace hp {
 
-  export class button extends form {
+  export abstract class button extends form {
 
     public constructor(element?: HTMLElement) {
       super(element)

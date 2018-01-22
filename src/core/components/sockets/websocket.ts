@@ -8,7 +8,7 @@ namespace hp {
     public constructor(public key: string, public val: string, public callback: (message: any) => void) { }
   }
 
-  export class websocket extends component {
+  export abstract class websocket extends component {
 
     private _client?: WebSocket
     private _events: WebSocketEvent[] = []

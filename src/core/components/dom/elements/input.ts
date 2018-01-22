@@ -6,7 +6,7 @@ namespace hp {
     rejectKey: number | number[]
   }
 
-  export class input extends form {
+  export abstract class input extends form {
 
     private _lastValue: string = ''
     private _currentValue: string = ''

@@ -1,0 +1,33 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "type": "shell",
+      "dependsOn": [
+        "Build TypeScript",
+        "Minify"
+      ]
+    },
+    {
+      "label": "Build TypeScript",
+      "command": "tsc",
+      "type": "shell",
+      "args": [
+        "-w -p ."
+      ]
+    },
+    {
+      "label": "Minify",
+      "type": "shell",
+      "command": "watch",
+      "args": [
+        "'uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js'"
+      ]
+    }
+  ]
+}

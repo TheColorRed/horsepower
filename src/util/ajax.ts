@@ -1,5 +1,5 @@
 namespace hp {
-  export class ajax {
+  export abstract class ajax {
 
     public static async fetch(url: string, options?: RequestInit) {
       let request = await fetch(url, options)

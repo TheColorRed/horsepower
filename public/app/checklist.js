@@ -37,11 +37,11 @@ class remove extends hp.button {
   }
 }
 
-class listitem extends hp.component { }
-class checklist extends hp.component { }
+class listitem extends hp.element { }
+class checklist extends hp.element { }
 
 hp.observe(add, '#newitem')
-hp.observe(checkbox, 'input[type=checkbox]')
 hp.observe(remove, 'input[type=button]')
+hp.observe(checkbox, 'input[type=checkbox]')
 hp.observe(checklist, '#checklist')
 hp.observe(listitem, '#checklist > li')

@@ -5,7 +5,7 @@ namespace hp {
     reject(value: string): void
   }
 
-  export class form extends dom {
+  export abstract class form extends element {
 
     public constructor(element?: HTMLElement) {
       super(element)

@@ -4,7 +4,7 @@
     "target": "es2015",
     "outFile": "lib/hp.js",
     // "outDir": "lib",
-    "removeComments": true,
+    // "removeComments": true,
     "declaration": true,
     // "declarationDir": "typings",
     "strict": true,
@@ -19,7 +19,7 @@
   "include": [
     "src/util/**/*.ts",
     "src/component.ts",
-    "src/dom.ts",
+    "src/element.ts",
     "src/core/**/*.ts",
     "src/index.ts"
   ]
