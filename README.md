@@ -1,6 +1,6 @@
 ## Components
 
-Components are the core of mutator, all elements that you would like to be interactable via the mutator framework must be attached to one or more components. From there is where the magic happens!
+Components are the core of horsepower, all elements that you would like to be interactable via the horsepower framework must be attached to one or more components. From there is where the magic happens!
 
 Components have events that are on them, and when an event occurs related to the element it is attached to the component's event also gets triggered.
 

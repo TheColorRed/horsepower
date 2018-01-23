@@ -1,13 +1,15 @@
-/// <reference path="../../lib/hp.d.ts"/>
-
 class bind extends hp.input {
+
   created() {
-    this.bind('a', [])
-    let bindings = this.bind('b', 1)
-    setInterval(() => {
-      // bindings.a.push(Math.random() * 1000)
-      bindings.a *= 10
-    }, 2000)
+    this.bindings = this.watch('a', [])
+    this.watch('b', 1)
+  }
+
+  tick() {
+    this.parentComponent(bind)
+    this.bindings.a.push(Math.random() * 1000)
+    this.bindings.b += 10
+    return 1000
   }
 
   changed(key, value) {

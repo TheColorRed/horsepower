@@ -26,7 +26,8 @@
       "type": "shell",
       "command": "watch",
       "args": [
-        "'uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js'"
+        "'uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js'",
+        "--interval=1"
       ]
     }
   ]

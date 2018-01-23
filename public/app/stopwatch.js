@@ -1,6 +1,9 @@
-/// <reference path="../../lib/hp.d.ts"/>
+const watch = hp.watch({
+  time: 0,
+  start: Date.now()
+})
 
-class stopwatchwrapper extends hp.component {
+class stopwatchwrapper extends hp.element {
   created() {
     this.append(`<div class="clock">0.0</div>
       <div class="btn-block">
@@ -9,25 +12,29 @@ class stopwatchwrapper extends hp.component {
   }
 }
 
-class stopwatch extends hp.component {
+class stopwatch extends hp.element {
+
+  created() { this.bind(watch) }
+
   tick() {
-    this.parentComponent(stopwatchwrapper, item => {
-      item.childComponent(stopwatchbutton, btn => {
-        let start = this.getInt('data-start')
-        btn.getBoolean('data-running') && this.textContent(((Date.now() - start) / 1000).toFixed(1))
-      })
-    })
+    watch.time = (Date.now() - watch.start) / 1000
     return 1
+  }
+
+  changed(newVal, oldVal, key) {
+    this.findComponent(stopwatchbutton, btn => {
+      key == 'time' && btn.getBoolean('data-running') && this.textContent((newVal).toFixed(1))
+    })
   }
 }
 
 class stopwatchbutton extends hp.button {
 
   clicked() {
-    this.parentComponent(stopwatchwrapper, item => {
+    this.closestComponent(stopwatchwrapper, item => {
       item.childComponent(stopwatch, item => {
         this.toggle('data-running')
-        item.setAttribute('data-start', Date.now())
+        watch.start = Date.now()
       })
     })
   }

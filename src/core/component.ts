@@ -1,16 +1,16 @@
 namespace hp {
 
-  export interface ComponentType<T extends component> {
+  export interface componentType<T extends component> {
     new(element?: HTMLElement): T
     tick(components: component[]): void
-    runStaticTick(comp: ComponentType<T>, tick?: number): void
+    runStaticTick(comp: componentType<T>, tick?: number): void
   }
 
   export interface component {
     ajax(data: any): void
     created(mutation?: MutationRecord): void
     modified(oldValue: any, newValue: any, attr: any, mutation?: MutationRecord): void
-    changed(key: string, value: any): void
+    changed(newValue: any, oldValue: any, key: string | string[]): void
     deleted(mutation?: MutationRecord): void
     childrenAdded(children: NodeList): void
     childrenRemoved(children: NodeList): void
@@ -18,10 +18,10 @@ namespace hp {
   }
 
   export class Observer<T extends component> {
-    public readonly component: ComponentType<T>
+    public readonly component: componentType<T>
     public readonly selectors: string[]
 
-    public constructor(component: ComponentType<T>, ...selectors: string[]) {
+    public constructor(component: componentType<T>, ...selectors: string[]) {
       this.component = component
       this.selectors = selectors
     }
@@ -37,8 +37,10 @@ namespace hp {
 
     public hasCreated: boolean = false
 
-    private boundValues: { [key: string]: any } = {}
-    private proxy: object
+    // private boundValues: { [key: string]: any } = {}
+    // private proxies: proxy[] = []
+    // private proxies: object[] = []
+    private proxy: proxy
 
     public constructor(element?: HTMLElement) {
       component.components.push(this)
@@ -48,26 +50,28 @@ namespace hp {
     // Overwriteable methods
     static tick(): any { }
 
-
-    public bind(item: { [key: string]: any }): { [key: string]: any }
-    public bind(key: string, value: any): { [key: string]: any }
-    public bind(...args: any[]): { [key: string]: any } {
+    public watch(item: { [key: string]: any }): { [key: string]: any }
+    public watch(key: string, value: any): typeof value
+    public watch(...args: any[]): any {
+      // !this.proxy && (this.proxy = new proxy().bind(this))
+      let prox = new proxy()
       if (args.length == 2) {
-        this.boundValues[args[0]] = args[1]
+        prox[args[0]] = args[1]
       } else if (args.length == 1 && args[0] instanceof Object) {
         for (let itm in args[0]) {
-          !(itm in this.boundValues) && (this.boundValues[itm] = args[0][itm])
+          !(itm in prox) && (prox[itm] = args[0][itm])
         }
       }
-      if (this.proxy) return this.proxy
-      let $this = this
-      this.proxy = new Proxy(this.boundValues, {
-        set(obj, prop, value) {
-          typeof $this.changed == 'function' && $this.changed(prop.toString(), value)
-          return Reflect.set(obj, prop, value)
-        }
-      })
-      return this.proxy
+      this.bind(prox)
+      return prox
+    }
+
+    public bind(...proxies: proxy[]) {
+      proxies.forEach(p => p.bind(this))
+    }
+
+    public unbind(...proxies: proxy[]) {
+      proxies.forEach(p => p.unbind(this))
     }
 
     /**
@@ -75,12 +79,12 @@ namespace hp {
      *
      * @static
      * @template T
-     * @param {ComponentType<T>} comp
+     * @param {componentType<T>} comp
      * @param {HTMLElement} element
      * @returns
      * @memberof component
      */
-    public static elementComponent<T extends component>(comp: ComponentType<T>, element: HTMLElement) {
+    public static elementComponent<T extends component>(comp: componentType<T>, element: HTMLElement) {
       return this.components.find(c => c instanceof comp && c.element == element) as T
     }
 
@@ -89,12 +93,12 @@ namespace hp {
      *
      * @static
      * @template T
-     * @param {ComponentType<T>} comp
+     * @param {componentType<T>} comp
      * @param {HTMLElement} element
      * @returns
      * @memberof component
      */
-    public static elementComponents<T extends component>(comp: ComponentType<T>, element: HTMLElement) {
+    public static elementComponents<T extends component>(comp: componentType<T>, element: HTMLElement) {
       return this.components.filter(c => c instanceof comp && c.element == element) as T[]
     }
 
@@ -102,12 +106,12 @@ namespace hp {
      * Finds the first instance of a component
      *
      * @template T
-     * @param {ComponentType<T>} comp
+     * @param {componentType<T>} comp
      * @param {(comp: T) => void} [callback]
      * @returns
      * @memberof component
      */
-    public findComponent<T extends component>(comp: ComponentType<T>, callback?: (comp: T) => void) {
+    public findComponent<T extends component>(comp: componentType<T>, callback?: (comp: T) => void) {
       let c = component.components.find(c => c instanceof comp) as T
       c instanceof component && typeof callback == 'function' && callback(c)
       return c
@@ -117,12 +121,12 @@ namespace hp {
      * Finds all instances of a component
      *
      * @template T
-     * @param {ComponentType<T>} comp
+     * @param {componentType<T>} comp
      * @param {(comp: T[]) => void} [callback]
      * @returns
      * @memberof component
      */
-    public findComponents<T extends component>(comp: ComponentType<T>, callback?: (comp: T[]) => void) {
+    public findComponents<T extends component>(comp: componentType<T>, callback?: (comp: T[]) => void) {
       let c = component.components.filter(c => c instanceof comp) as T[]
       typeof callback == 'function' && callback(c)
       return c
@@ -132,12 +136,12 @@ namespace hp {
      * Finds the first parent with a specific component
      *
      * @template T
-     * @param {ComponentType<T>} comp
+     * @param {componentType<T>} comp
      * @param {(component: T) => void} [callback]
      * @returns {(T | null)}
      * @memberof component
      */
-    public parentComponent<T extends component>(comp: ComponentType<T>, callback?: (component: T) => void): T | null {
+    public parentComponent<T extends component>(comp: componentType<T>, callback?: (component: T) => void): T | null {
       let parent = component.components.find(c => c.element == this.element.parentElement) as T
       parent && typeof callback == 'function' && callback(parent)
       return parent
@@ -147,18 +151,18 @@ namespace hp {
      * Finds the first parent with a specific component
      *
      * @template T
-     * @param {ComponentType<T>} comp
+     * @param {componentType<T>} comp
      * @param {(component: T) => void} [callback]
      * @returns {(T | null)}
      * @memberof component
      */
-    public closestComponent<T extends component>(comp: ComponentType<T>, callback?: (component: T) => void): T | null {
+    public closestComponent<T extends component>(comp: componentType<T>, callback?: (component: T) => void): T | null {
       let parent = this._closestComponent<T>(comp, this.element)
       parent && typeof callback == 'function' && callback(parent)
       return parent
     }
 
-    private _closestComponent<T extends component>(comp: ComponentType<T>, target?: HTMLElement): T | null {
+    private _closestComponent<T extends component>(comp: componentType<T>, target?: HTMLElement): T | null {
       let parent = target ? target.parentElement : this.element.parentElement
       if (parent) {
         let c = component.components.find(c => c instanceof comp && c.element == parent)
@@ -183,14 +187,14 @@ namespace hp {
       return components
     }
 
-    public getComponent<T extends component>(comp: ComponentType<T>, callback?: (item: T) => void): T | null {
+    public childComponent<T extends component>(comp: componentType<T>, callback?: (item: T) => void): T | null {
       let items = Array.from(this.element.querySelectorAll('*'))
       let c = component.components.find(c => c instanceof comp && items.indexOf(c.element) > -1) as T
       c && typeof callback == 'function' && callback(c)
       return c
     }
 
-    public childComponents<T extends component>(comp: ComponentType<T>) {
+    public childComponents<T extends component>(comp: componentType<T>) {
       let items = Array.from(this.element.querySelectorAll('*'))
       return component.components.filter(c => c instanceof comp && items.indexOf(c.element) > -1) as T[]
     }
@@ -199,12 +203,12 @@ namespace hp {
      * Gets the first component from one of the siblings
      *
      * @template T
-     * @param {ComponentType<T>} comp
+     * @param {componentType<T>} comp
      * @param {(item: T) => void} [callback]
      * @returns {(T | null)}
      * @memberof component
      */
-    public siblingComponent<T extends component>(comp: ComponentType<T>, callback?: (item: T) => void): T | null {
+    public siblingComponent<T extends component>(comp: componentType<T>, callback?: (item: T) => void): T | null {
       let c = component.components.find(c => {
         if (this.element.parentElement) {
           let nodes = this.element.parentElement.childNodes
@@ -222,26 +226,26 @@ namespace hp {
      * Gets all componets from the all the siblings exclusive
      *
      * @template T
-     * @param {ComponentType<T>} comp
+     * @param {componentType<T>} comp
      * @param {(item: T[]) => void} [callback]
      * @returns {(T[] | null)}
      * @memberof component
      */
-    public siblingComponents<T extends component>(comp: ComponentType<T>, callback?: (item: T[]) => void): T[] | null
+    public siblingComponents<T extends component>(comp: componentType<T>, callback?: (item: T[]) => void): T[] | null
 
     /**
      * Gets all componets from the all the siblings inclusively or exclusively
      *
      * @template T
-     * @param {ComponentType<T>} comp
+     * @param {componentType<T>} comp
      * @param {boolean} inclusive
      * @param {(item: T[]) => void} [callback]
      * @returns {(T[] | null)}
      * @memberof component
      */
-    public siblingComponents<T extends component>(comp: ComponentType<T>, inclusive: boolean, callback?: (item: T[]) => void): T[] | null
+    public siblingComponents<T extends component>(comp: componentType<T>, inclusive: boolean, callback?: (item: T[]) => void): T[] | null
     public siblingComponents<T extends component>(...args: any[]): T[] | null {
-      let comp: ComponentType<T> = args[0]
+      let comp: componentType<T> = args[0]
       let inclusive = args.length == 3 ? args[1] : false
       let callback = args.length == 3 ? args[2] : args[1]
       let components = component.components.filter(c => {
@@ -260,7 +264,7 @@ namespace hp {
       return components
     }
 
-    public static createNewComponent<T extends component>(element: HTMLElement, comp: ComponentType<T>, mutation: MutationRecord) {
+    public static createNewComponent<T extends component>(element: HTMLElement, comp: componentType<T>, mutation: MutationRecord) {
       let item = this.components.find(c => c.element == element && c instanceof comp)
       if (!item) {
         let c = new comp(element)
@@ -271,26 +275,24 @@ namespace hp {
         this.components.filter(comp => comp.element == element).forEach(c => c.hasCreated && typeof c.modified == 'function' && c.modified(mutation.oldValue, newval, mutation.attributeName, mutation))
         // Run the individual ticker for the component
         if (typeof c.tick == 'function') {
-          let tick = c.tick()
-          if (typeof tick == 'number') {
-            c.runTick(tick)
-          }
+          c.runTick(0)
         }
       }
     }
 
-    private runTick(tick?: number) {
-      if (typeof tick == 'number') {
+    private runTick(next?: number) {
+      if (typeof next == 'number') {
         setTimeout(() => {
-          let tick = this.tick()
-          if (typeof tick == 'number') {
-            this.runTick(tick)
+          if (typeof this.tick != 'function') return
+          next = this.tick() || 0
+          if (typeof next == 'number') {
+            this.runTick(next)
           }
-        }, tick)
+        }, next)
       }
     }
 
-    public static runStaticTick<T extends component>(comp: ComponentType<T>, tick?: number) {
+    public static runStaticTick<T extends component>(comp: componentType<T>, tick?: number) {
       if (typeof tick == 'number') {
         setTimeout(() => {
           let tick = comp.tick(this.components.filter(c => c instanceof comp))

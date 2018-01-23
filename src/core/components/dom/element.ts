@@ -83,7 +83,7 @@ namespace hp {
       return this.getBoolean(key)
     }
 
-    public insert<T extends component>(position: InsertPosition, html: string | HTMLElement | component | ComponentType<T>) {
+    public insert<T extends component>(position: InsertPosition, html: string | HTMLElement | component | componentType<T>) {
       if (html instanceof HTMLElement) {
         return this.element.insertAdjacentElement(position, html)
       } else if (html instanceof component) {
@@ -96,19 +96,19 @@ namespace hp {
       }
     }
 
-    public append<T extends component>(html: string | HTMLElement | component | ComponentType<T>) {
+    public append<T extends component>(html: string | HTMLElement | component | componentType<T>) {
       return this.insert('beforeend', html)
     }
 
-    public prepend<T extends component>(html: string | HTMLElement | component | ComponentType<T>) {
+    public prepend<T extends component>(html: string | HTMLElement | component | componentType<T>) {
       return this.insert('afterbegin', html)
     }
 
-    public before<T extends component>(html: string | HTMLElement | component | ComponentType<T>) {
+    public before<T extends component>(html: string | HTMLElement | component | componentType<T>) {
       return this.insert('beforebegin', html)
     }
 
-    public after<T extends component>(html: string | HTMLElement | component | ComponentType<T>) {
+    public after<T extends component>(html: string | HTMLElement | component | componentType<T>) {
       return this.insert('afterend', html)
     }
 

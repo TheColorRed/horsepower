@@ -2,7 +2,7 @@ namespace hp {
 
   let domLoaded: boolean = false
 
-  export function observe<T extends component>(comp: ComponentType<T>, ...selectors: string[]) {
+  export function observe<T extends component>(comp: componentType<T>, ...selectors: string[]) {
     component.observers.push(new Observer(comp, ...selectors))
     // Run the component global ticker
     if (!domLoaded) {
@@ -50,4 +50,34 @@ namespace hp {
       attributes: true, attributeOldValue: true
     })
   }
+
+  // const proxyValues: { [key: string]: any } = {}
+  // const proxy: Object = function (parent: any) {
+  //   return createDeepProxy(proxyValues, {
+  //     set(obj, prop, value) {
+  //       if (typeof parent['changed'] == 'function') {
+  //         let propval = prop.valueOf()
+  //         if ((Array.isArray(propval) && propval.indexOf('length') == -1) || !Array.isArray(obj)) {
+  //           parent['changed'](prop.valueOf() as any, value)
+  //         }
+  //       }
+  //       return Reflect.set(obj, prop, value)
+  //     }
+  //   })
+  // }
+
+  export function watch(item: { [key: string]: any }): proxy
+  export function watch(key: string, value: any): proxy
+  export function watch(...args: any[]): proxy {
+    let prox = new proxy()
+    if (args.length == 2) {
+      prox[args[0]] = args[1]
+    } else if (args.length == 1 && args[0] instanceof Object) {
+      for (let itm in args[0]) {
+        !(itm in prox) && (prox[itm] = args[0][itm])
+      }
+    }
+    return prox
+  }
+
 }
