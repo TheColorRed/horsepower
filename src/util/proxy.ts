@@ -1,8 +1,11 @@
 namespace hp {
+
+  export interface proxy {
+    [key: string]: any
+  }
+
   export class proxy {
 
-    // public proxy: any
-    // private proxies: proxy[] = []
     private boundValues: { [key: string]: any } = {}
     private boundTo: component[] = []
 
@@ -10,7 +13,6 @@ namespace hp {
       let $this = this
       return new Proxy(this, {
         set(obj, prop, val) {
-          // console.log(obj)
           $this.boundTo.forEach(itm => {
             if (typeof itm.changed == 'function') {
               let propval = prop.valueOf()

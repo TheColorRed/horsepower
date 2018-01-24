@@ -5,7 +5,7 @@
     "main": "./lib/hp.min.js",
     "types": "./lib/hp.d.ts",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "prepack": "rm -r lib && tsc -p ."
     },
     "author": "",
     "license": "ISC",

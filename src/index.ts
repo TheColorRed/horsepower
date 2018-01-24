@@ -51,23 +51,8 @@ namespace hp {
     })
   }
 
-  // const proxyValues: { [key: string]: any } = {}
-  // const proxy: Object = function (parent: any) {
-  //   return createDeepProxy(proxyValues, {
-  //     set(obj, prop, value) {
-  //       if (typeof parent['changed'] == 'function') {
-  //         let propval = prop.valueOf()
-  //         if ((Array.isArray(propval) && propval.indexOf('length') == -1) || !Array.isArray(obj)) {
-  //           parent['changed'](prop.valueOf() as any, value)
-  //         }
-  //       }
-  //       return Reflect.set(obj, prop, value)
-  //     }
-  //   })
-  // }
-
-  export function watch(item: { [key: string]: any }): proxy
-  export function watch(key: string, value: any): proxy
+  export function watch<T extends object>(item: T): proxy & T
+  export function watch<K extends string, V>(key: K, value: V): proxy & Record<K, V>
   export function watch(...args: any[]): proxy {
     let prox = new proxy()
     if (args.length == 2) {

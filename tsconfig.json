@@ -3,6 +3,7 @@
     "module": "system",
     "target": "es2015",
     "outFile": "lib/hp.js",
+    "checkJs": true,
     // "outDir": "lib",
     // "removeComments": true,
     "declaration": true,
