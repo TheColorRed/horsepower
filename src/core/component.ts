@@ -40,7 +40,7 @@ namespace hp {
     // private boundValues: { [key: string]: any } = {}
     // private proxies: proxy[] = []
     // private proxies: object[] = []
-    private proxy: proxy
+    // private proxy: proxy
 
     public constructor(element?: HTMLElement) {
       component.components.push(this)
