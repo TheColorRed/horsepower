@@ -1,0 +1,1 @@
+/// <reference path="../../lib/hp.d.ts"/>
