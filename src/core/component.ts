@@ -15,6 +15,7 @@ namespace hp {
     childrenAdded(children: NodeList): void
     childrenRemoved(children: NodeList): void
     tick(): any
+    loop(): any
   }
 
   export class Observer<T extends component> {
@@ -108,7 +109,7 @@ namespace hp {
      * @template T
      * @param {componentType<T>} comp
      * @param {(comp: T) => void} [callback]
-     * @returns
+     * @returns {T}
      * @memberof component
      */
     public findComponent<T extends component>(comp: componentType<T>, callback?: (comp: T) => void) {
@@ -277,6 +278,18 @@ namespace hp {
         if (typeof c.tick == 'function') {
           c.runTick(0)
         }
+      }
+    }
+
+    public startLoop(next: number) {
+      if (typeof next == 'number') {
+        setTimeout(() => {
+          if (typeof this.tick != 'function') return
+          next = this.loop() || 0
+          if (typeof next == 'number') {
+            this.startLoop(next)
+          }
+        }, next)
       }
     }
 

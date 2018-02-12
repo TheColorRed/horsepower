@@ -55,6 +55,6 @@ class stopwatchbutton extends hp.button {
   }
 }
 
-hp.observe(stopwatch, '.clock')
-hp.observe(stopwatchwrapper, '.wrapper')
-hp.observe(stopwatchbutton, 'input[type=button]')
+hp.observe('.clock', stopwatch)
+hp.observe('.wrapper', stopwatchwrapper)
+hp.observe('input[type=button]', stopwatchbutton)

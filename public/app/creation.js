@@ -1,6 +1,4 @@
-/// <reference path="../../lib/hp.d.ts"/>
-
-class creation extends hp.component {
+class creation extends hp.element {
 
   // Create a 'creation' ticker
   // All 'creation' components will share this static ticker
@@ -23,4 +21,4 @@ creation.count = 0
 
 // Create an observer to watch items with the class "test"
 // and watch for when they are added, removed or modified
-hp.observe(creation, '.test')
+hp.observe('.test', creation)

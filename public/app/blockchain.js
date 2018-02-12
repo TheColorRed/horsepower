@@ -1,5 +1,3 @@
-/// <reference path="../../lib/hp.d.ts"/>
-
 class blockchain extends hp.websocket {
 
   // Configure the websocket settings
@@ -43,4 +41,4 @@ class blockchain extends hp.websocket {
 
 }
 
-hp.observe(blockchain, '#blocks')
+hp.observe('#blocks', blockchain)

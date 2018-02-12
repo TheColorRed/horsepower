@@ -39,20 +39,20 @@ namespace hp {
       this.altHeld = e.altKey
       this.shiftHeld = e.shiftKey
       this.ctrlHeld = e.ctrlKey
-      if (typeof this.reject == 'function' && this.element instanceof HTMLInputElement) {
-        let accpetKey = this.acceptKey || [13]
-        accpetKey = !Array.isArray(accpetKey) ? [accpetKey] : accpetKey
-        if (accpetKey.indexOf(e.keyCode) > -1) {
+      if (typeof this.accept == 'function' && this.element instanceof HTMLInputElement) {
+        let acceptKey = this.acceptKey || [13]
+        acceptKey = !Array.isArray(acceptKey) ? [acceptKey] : acceptKey
+        if (acceptKey.indexOf(e.keyCode) > -1) {
           e.preventDefault()
-          this.accept((<any>this.element).value)
+          this.accept(this.element.value)
         }
       }
-      if (typeof this.accept == 'function' && this.element instanceof HTMLInputElement) {
+      if (typeof this.reject == 'function' && this.element instanceof HTMLInputElement) {
         let rejectKey = this.rejectKey || [27]
         rejectKey = !Array.isArray(rejectKey) ? [rejectKey] : rejectKey
         if (rejectKey.indexOf(e.keyCode) > -1) {
           e.preventDefault()
-          this.reject((<any>this.element).value)
+          this.reject(this.element.value)
         }
       }
     }

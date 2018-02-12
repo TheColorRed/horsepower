@@ -15,19 +15,22 @@
     },
     {
       "label": "Build TypeScript",
-      "command": "tsc",
       "type": "shell",
+      "command": "./node_modules/.bin/tsc",
       "args": [
-        "-w -p ."
+        "-w",
+        "-p",
+        "."
       ]
     },
     {
       "label": "Minify",
       "type": "shell",
-      "command": "watch",
+      "command": "./node_modules/.bin/watch \"uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js\"",
       "args": [
-        "'uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js'",
-        "--interval=1"
+        "./lib/",
+        "--interval=1",
+        "--wait=1"
       ]
     }
   ]

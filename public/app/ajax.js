@@ -1,5 +1,3 @@
-/// <reference path="../../lib/hp.d.ts"/>
-
 class form extends hp.form {
   ajax(response) {
     response.array.forEach(number => this.afterElement('div', number))
@@ -9,4 +7,4 @@ class form extends hp.form {
   }
 }
 
-hp.observe(form, 'form')
+hp.observe('form', form)

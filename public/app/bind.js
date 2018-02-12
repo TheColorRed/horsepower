@@ -17,4 +17,4 @@ class bind extends hp.input {
   }
 }
 
-hp.observe(bind, '#bind')
+hp.observe('#bind', bind)

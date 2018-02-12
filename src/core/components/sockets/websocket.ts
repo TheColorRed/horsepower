@@ -8,7 +8,7 @@ namespace hp {
     public constructor(public key: string, public val: string, public callback: (message: any) => void) { }
   }
 
-  export abstract class websocket extends component {
+  export abstract class websocket extends element {
 
     private _client?: WebSocket
     private _events: WebSocketEvent[] = []
@@ -35,7 +35,7 @@ namespace hp {
 
     private pingCount: number = 0
     private shouldReconnect: boolean = true
-    private reconnectDelay: number = 1000
+    private reconnectDelay?: number = 1000
 
     public constructor(element?: HTMLElement) {
       super(element)
@@ -47,7 +47,8 @@ namespace hp {
         this.shouldReconnect = cfg.reconnect || true
         this.reconnectDelay = cfg.reconnectDelay || 1000
       }
-      this._client = new WebSocket(this.url)
+      if (this.url.length == 0) { throw new Error('A Socket URL is required') }
+      this._client = new WebSocket(this.url, this.protocols)
       this._client.addEventListener('open', this.onOpen.bind(this))
       this._client.addEventListener('message', this.onMessage.bind(this))
       this._client.addEventListener('close', this.onClose.bind(this))

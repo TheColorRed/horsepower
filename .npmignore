@@ -5,3 +5,4 @@ src
 .vscode
 ecosystem.config.js
 tsconfig.json
+*.tgz

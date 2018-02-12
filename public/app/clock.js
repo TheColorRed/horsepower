@@ -1,6 +1,4 @@
-/// <reference path="../../lib/hp.d.ts"/>
-
-class clock extends hp.component {
+class clock extends hp.element {
 
   tick() {
     this.setAttribute('data-date', Date.now())
@@ -19,4 +17,4 @@ class clock extends hp.component {
 
 // Create an observer to watch items with the class "test"
 // and watch for when they are added, removed or modified
-hp.observe(clock, '.clock')
+hp.observe('.clock', clock)

@@ -1,17 +1,28 @@
 {
     "name": "horsepower",
     "version": "0.0.1",
-    "description": "",
+    "description": "JavaScript library for the browsers DOM",
     "main": "./lib/hp.min.js",
     "types": "./lib/hp.d.ts",
     "scripts": {
-        "prepack": "rm -r lib && tsc -p ."
+        "prepack": "rm -rf ./lib && tsc -p . && uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js"
     },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/TheColorRed/horsepower"
+    },
+    "keywords": [
+        "javascript",
+        "browser",
+        "library"
+    ],
     "author": "",
     "license": "ISC",
     "devDependencies": {
         "express": "^4.16.2",
-        "uglify-js": "^3.3.8",
+        "typescript": "^2.7.1",
+        "uglify-es": "^3.3.10",
         "watch": "^1.0.2"
-    }
+    },
+    "dependencies": {}
 }
