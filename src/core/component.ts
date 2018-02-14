@@ -127,10 +127,10 @@ namespace hp {
      * @returns
      * @memberof component
      */
-    public findComponents<T extends component>(comp: componentType<T>, callback?: (comp: T[]) => void) {
-      let c = component.components.filter(c => c instanceof comp) as T[]
-      typeof callback == 'function' && callback(c)
-      return c
+    public findComponents<T extends component>(comp: componentType<T>, callback?: (comp: T) => void) {
+      let comps = component.components.filter(c => c instanceof comp) as T[]
+      typeof callback == 'function' && comps.forEach(comp => { callback(comp) })
+      return comps
     }
 
     /**

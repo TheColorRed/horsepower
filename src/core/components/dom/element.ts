@@ -1,7 +1,7 @@
 namespace hp {
 
   export interface element {
-    clicked(button: number): void
+    clicked(button: mouseButton): void
     doubleClicked(button: number): void
   }
 
@@ -11,22 +11,18 @@ namespace hp {
 
     public constructor(element?: HTMLElement) {
       super(element)
-      if (typeof this.clicked == 'function') {
-        this.element.addEventListener('click', this.onClicked.bind(this))
-      }
-      if (typeof this.doubleClicked == 'function') {
-        this.element.addEventListener('dblclick', this.onDoubleClicked.bind(this))
-      }
+      typeof this.clicked == 'function' && this.element.addEventListener('click', this.onClicked.bind(this))
+      typeof this.doubleClicked == 'function' && this.element.addEventListener('dblclick', this.onDoubleClicked.bind(this))
     }
 
     private onClicked(e: MouseEvent) {
       e.preventDefault()
-      this.clicked(e.button)
+      typeof this.clicked == 'function' && this.clicked(e.button)
     }
 
     private onDoubleClicked(e: MouseEvent) {
       e.preventDefault()
-      this.doubleClicked(e.button)
+      typeof this.doubleClicked == 'function' && this.doubleClicked(e.button)
     }
 
     public find(selector: string) {
