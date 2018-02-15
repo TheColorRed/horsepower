@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "checkJs": true,
+    "allowJs": true,
     "module": "commonjs",
     "target": "es6",
     "lib": [
@@ -9,9 +10,8 @@
       "es2017"
     ]
   },
-  "typeAcquisition": {
-    "include": [
-      "../../lib/hp.d.ts"
-    ]
-  }
+  "include": [
+    "../../lib/hp.d.ts",
+    "./**/*.js"
+  ]
 }

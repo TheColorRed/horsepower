@@ -2,9 +2,9 @@ namespace hp {
 
   let domLoaded: boolean = false
 
-  export function observe<T extends component>(selector: string, ...comps: componentType<T>[]): void {
+  export function observe<T extends element>(selector: string, ...comps: componentType<T>[]): void {
     comps.forEach(comp => {
-      component.observers.push(new Observer(comp, selector))
+      component.observers.push(new observer(comp, selector))
       // Run the component global ticker
       if (!domLoaded) {
         domLoaded = true
@@ -19,7 +19,9 @@ namespace hp {
         })
       }
 
+      // If the mutation observer has already been created dont create it again
       if (component.observer) return
+      // If the mutation observer has not been created create one
       component.observer = new MutationObserver(mutationList => {
         mutationList.forEach(mutation => {
           let target = mutation.target as HTMLElement

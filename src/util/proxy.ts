@@ -50,20 +50,20 @@ namespace hp {
       return this
     }
 
-    // public watch(...args: any[]): any {
-    //   args.forEach(item => {
-    //     if (item instanceof proxy) {
-    //       this.proxies.push(item)
-    //     }
-    //   })
-    //   // if (args.length == 2) {
-    //   //   this.boundValues[args[0]] = args[1]
-    //   // } else if (args.length == 1 && args[0] instanceof Object) {
-    //   //   for (let itm in args[0]) {
-    //   //     !(itm in this.boundValues) && (this.boundValues[itm] = args[0][itm])
-    //   //   }
-    //   // }
-    // }
+    public watch(...args: any[]): any {
+      args.forEach(item => {
+        if (item instanceof proxy) {
+          this.proxies.push(item)
+        }
+      })
+      // if (args.length == 2) {
+      //   this.boundValues[args[0]] = args[1]
+      // } else if (args.length == 1 && args[0] instanceof Object) {
+      //   for (let itm in args[0]) {
+      //     !(itm in this.boundValues) && (this.boundValues[itm] = args[0][itm])
+      //   }
+      // }
+    }
 
   }
 }

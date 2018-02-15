@@ -29,8 +29,7 @@
       "command": "./node_modules/.bin/watch \"uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js\"",
       "args": [
         "./lib/",
-        "--interval=1",
-        "--wait=5"
+        "--interval=1"
       ]
     }
   ]

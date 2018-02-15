@@ -1,9 +1,9 @@
 namespace hp {
 
-  export interface componentType<T extends component> {
+  export interface componentType<T extends element> {
     new(element?: HTMLElement): T
-    tick(components: component[]): void
-    runStaticTick(comp: componentType<T>, tick?: number): void
+    tick(components: component[]): any
+    runStaticTick(comp: componentType<element>, tick?: number): void
   }
 
   export interface component {
@@ -18,7 +18,7 @@ namespace hp {
     loop(): any
   }
 
-  export class Observer<T extends component> {
+  export class observer<T extends element> {
     public readonly component: componentType<T>
     public readonly selectors: string[]
 
@@ -33,7 +33,7 @@ namespace hp {
     public readonly element: HTMLElement
 
     public static observer: MutationObserver
-    public static observers: Observer<any>[] = []
+    public static observers: observer<any>[] = []
     public static components: component[] = []
 
     public hasCreated: boolean = false
@@ -85,7 +85,7 @@ namespace hp {
      * @returns
      * @memberof component
      */
-    public static elementComponent<T extends component>(comp: componentType<T>, element: HTMLElement) {
+    public static elementComponent<T extends element>(comp: componentType<T>, element: HTMLElement) {
       return this.components.find(c => c instanceof comp && c.element == element) as T
     }
 
@@ -99,7 +99,7 @@ namespace hp {
      * @returns
      * @memberof component
      */
-    public static elementComponents<T extends component>(comp: componentType<T>, element: HTMLElement) {
+    public static elementComponents<T extends element>(comp: componentType<T>, element: HTMLElement) {
       return this.components.filter(c => c instanceof comp && c.element == element) as T[]
     }
 
@@ -112,7 +112,7 @@ namespace hp {
      * @returns {T}
      * @memberof component
      */
-    public findComponent<T extends component>(comp: componentType<T>, callback?: (comp: T) => void) {
+    public findComponent<T extends element>(comp: componentType<T>, callback?: (comp: T) => void): T {
       let c = component.components.find(c => c instanceof comp) as T
       c instanceof component && typeof callback == 'function' && callback(c)
       return c
@@ -127,9 +127,38 @@ namespace hp {
      * @returns
      * @memberof component
      */
-    public findComponents<T extends component>(comp: componentType<T>, callback?: (comp: T) => void) {
+    public findComponents<T extends element>(comp: componentType<T>, callback?: (comp: T) => void): T[] {
       let comps = component.components.filter(c => c instanceof comp) as T[]
       typeof callback == 'function' && comps.forEach(comp => { callback(comp) })
+      return comps
+    }
+
+    public findElement(selector: string, callback?: (comp: element) => void): element | undefined {
+      let el = document.querySelector(selector) as HTMLElement
+      let comp: element | undefined
+      if (el) {
+        comp = component.components.find(c => c.element == el) as element
+        if (!comp) {
+          comp = component.createNewComponent(el, element)
+        }
+      }
+      typeof callback == 'function' && comp instanceof element && callback(comp)
+      return comp as element
+    }
+
+    public findElements(selector: string, callback?: (comp: element) => void): element[] {
+      let elements: HTMLElement[] = Array.from(document.querySelectorAll(selector))
+      let comps: element[] = []
+      elements.forEach(el => {
+        if (el) {
+          let comp = component.components.find(c => c.element == el) as element
+          if (!comp) {
+            comp = component.createNewComponent(el, element)
+          }
+          comp instanceof element && comps.push(comp)
+          typeof callback == 'function' && comp instanceof element && callback(comp)
+        }
+      })
       return comps
     }
 
@@ -142,10 +171,24 @@ namespace hp {
      * @returns {(T | null)}
      * @memberof component
      */
-    public parentComponent<T extends component>(comp: componentType<T>, callback?: (component: T) => void): T | null {
+    public parentComponent<T extends element>(comp: componentType<T>, callback?: (component: T) => void): T | null {
       let parent = component.components.find(c => c.element == this.element.parentElement) as T
       parent && typeof callback == 'function' && callback(parent)
       return parent
+    }
+
+    public parentElement(selector: string, callback?: (comp: element) => void): element | undefined {
+      let el = document.querySelector(selector) as HTMLElement
+      let parentElement = el ? el.parentElement : null
+      let comp: element | undefined
+      if (parentElement) {
+        let parent = component.components.find(c => c.element == parentElement) as element
+        if (!parent) {
+          comp = component.createNewComponent(el, element)
+        }
+      }
+      typeof callback == 'function' && comp instanceof element && callback(comp)
+      return comp
     }
 
     /**
@@ -157,13 +200,13 @@ namespace hp {
      * @returns {(T | null)}
      * @memberof component
      */
-    public closestComponent<T extends component>(comp: componentType<T>, callback?: (component: T) => void): T | null {
+    public closestComponent<T extends element>(comp: componentType<T>, callback?: (component: T) => void): T | null {
       let parent = this._closestComponent<T>(comp, this.element)
       parent && typeof callback == 'function' && callback(parent)
       return parent
     }
 
-    private _closestComponent<T extends component>(comp: componentType<T>, target?: HTMLElement): T | null {
+    private _closestComponent<T extends element>(comp: componentType<T>, target?: HTMLElement): T | null {
       let parent = target ? target.parentElement : this.element.parentElement
       if (parent) {
         let c = component.components.find(c => c instanceof comp && c.element == parent)
@@ -173,6 +216,19 @@ namespace hp {
         return c as T
       }
       return null
+    }
+
+    public closestElement(selector: string, callback?: (comp: element) => void): element | undefined {
+      let parentElement = this.element.closest(selector) as HTMLElement
+      let comp: element | undefined
+      if (parentElement) {
+        comp = component.components.find(c => c.element == parentElement) as element
+        if (!comp) {
+          comp = component.createNewComponent(parentElement, element)
+        }
+      }
+      typeof callback == 'function' && comp instanceof element && callback(comp)
+      return comp
     }
 
     /**
@@ -188,14 +244,14 @@ namespace hp {
       return components
     }
 
-    public childComponent<T extends component>(comp: componentType<T>, callback?: (item: T) => void): T | null {
+    public childComponent<T extends element>(comp: componentType<T>, callback?: (item: T) => void): T | null {
       let items = Array.from(this.element.querySelectorAll('*'))
       let c = component.components.find(c => c instanceof comp && items.indexOf(c.element) > -1) as T
       c && typeof callback == 'function' && callback(c)
       return c
     }
 
-    public childComponents<T extends component>(comp: componentType<T>) {
+    public childComponents<T extends element>(comp: componentType<T>): T[] {
       let items = Array.from(this.element.querySelectorAll('*'))
       return component.components.filter(c => c instanceof comp && items.indexOf(c.element) > -1) as T[]
     }
@@ -209,7 +265,7 @@ namespace hp {
      * @returns {(T | null)}
      * @memberof component
      */
-    public siblingComponent<T extends component>(comp: componentType<T>, callback?: (item: T) => void): T | null {
+    public siblingComponent<T extends element>(comp: componentType<T>, callback?: (item: T) => void): T | null {
       let c = component.components.find(c => {
         if (this.element.parentElement) {
           let nodes = this.element.parentElement.childNodes
@@ -232,7 +288,7 @@ namespace hp {
      * @returns {(T[] | null)}
      * @memberof component
      */
-    public siblingComponents<T extends component>(comp: componentType<T>, callback?: (item: T[]) => void): T[] | null
+    public siblingComponents<T extends element>(comp: componentType<T>, callback?: (item: T[]) => void): T[] | null
 
     /**
      * Gets all componets from the all the siblings inclusively or exclusively
@@ -244,8 +300,8 @@ namespace hp {
      * @returns {(T[] | null)}
      * @memberof component
      */
-    public siblingComponents<T extends component>(comp: componentType<T>, inclusive: boolean, callback?: (item: T[]) => void): T[] | null
-    public siblingComponents<T extends component>(...args: any[]): T[] | null {
+    public siblingComponents<T extends element>(comp: componentType<T>, inclusive: boolean, callback?: (item: T[]) => void): T[] | null
+    public siblingComponents<T extends element>(...args: any[]): T[] | null {
       let comp: componentType<T> = args[0]
       let inclusive = args.length == 3 ? args[1] : false
       let callback = args.length == 3 ? args[2] : args[1]
@@ -265,20 +321,42 @@ namespace hp {
       return components
     }
 
-    public static createNewComponent<T extends component>(element: HTMLElement, comp: componentType<T>, mutation: MutationRecord) {
+    /**
+     * Removes components that don't have elements associated to them
+     *
+     * @private
+     * @memberof element
+     */
+    protected removeEmptyComponents() {
+      let i = component.components.length
+      while (i--) {
+        let comp = component.components[i]
+        // console.log(comp.element)
+        if (!comp.element) {
+          component.components.splice(i, 1)
+        }
+      }
+    }
+
+    public static createNewComponent<T extends element>(element: HTMLElement, comp: componentType<T>, mutation?: MutationRecord): T {
       let item = this.components.find(c => c.element == element && c instanceof comp)
       if (!item) {
         let c = new comp(element)
         typeof c.created == 'function' && c.created(mutation)
         c.hasCreated = true
         let newval: any = null
-        mutation.attributeName && (newval = element.getAttribute(mutation.attributeName))
-        this.components.filter(comp => comp.element == element).forEach(c => c.hasCreated && typeof c.modified == 'function' && c.modified(mutation.oldValue, newval, mutation.attributeName, mutation))
+        mutation && mutation.attributeName && (newval = element.getAttribute(mutation.attributeName))
+        this.components.filter(comp => comp.element == element).forEach(c =>
+          c.hasCreated && typeof c.modified == 'function' && mutation &&
+          c.modified(mutation.oldValue, newval, mutation.attributeName, mutation)
+        )
         // Run the individual ticker for the component
         if (typeof c.tick == 'function') {
           c.runTick(0)
         }
+        return c
       }
+      return item as T
     }
 
     public startLoop(next: number) {
@@ -305,7 +383,7 @@ namespace hp {
       }
     }
 
-    public static runStaticTick<T extends component>(comp: componentType<T>, tick?: number) {
+    public static runStaticTick<T extends element>(comp: componentType<T>, tick?: number) {
       if (typeof tick == 'number') {
         setTimeout(() => {
           let tick = comp.tick(this.components.filter(c => c instanceof comp))
