@@ -30,14 +30,18 @@ namespace hp {
 
   export abstract class component {
 
-    private readonly _element: HTMLElement | Document | Window
+    private readonly _node: HTMLElement | Document | Window
 
     public get element(): HTMLElement {
       let el: HTMLElement
-      if (this._element instanceof Window) el = this._element.document.body
-      else if (this._element instanceof Document) el = this._element.body
-      else el = this._element
+      if (this._node instanceof Window) el = this._node.document.body
+      else if (this._node instanceof Document) el = this._node.body
+      else el = this._node
       return el
+    }
+
+    public get node(): HTMLElement | Document | Window {
+      return this._node
     }
 
     public static observer: MutationObserver
@@ -51,9 +55,9 @@ namespace hp {
     // private proxies: object[] = []
     // private proxy: proxy
 
-    public constructor(element?: HTMLElement | Document | Window) {
+    public constructor(node?: HTMLElement | Document | Window) {
       component.components.push(this)
-      this._element = !element ? window.document.createElement('div') : element
+      this._node = !node ? window.document.createElement('div') : node
     }
 
     // Overwriteable methods
@@ -346,14 +350,14 @@ namespace hp {
       }
     }
 
-    public static createNewComponent<T extends element>(element: HTMLElement, comp: componentType<T>, mutation?: MutationRecord): T {
+    public static createNewComponent<T extends element>(element: HTMLElement | Document | Window, comp: componentType<T>, mutation?: MutationRecord): T {
       let item = this.components.find(c => c.element == element && c instanceof comp)
       if (!item) {
         let c = new comp(element)
         typeof c.created == 'function' && c.created(mutation)
         c.hasCreated = true
         let newval: any = null
-        mutation && mutation.attributeName && (newval = element.getAttribute(mutation.attributeName))
+        element instanceof HTMLElement && mutation && mutation.attributeName && (newval = element.getAttribute(mutation.attributeName))
         this.components.filter(comp => comp.element == element).forEach(c =>
           c.hasCreated && typeof c.modified == 'function' && mutation &&
           c.modified(mutation.oldValue, newval, mutation.attributeName, mutation)

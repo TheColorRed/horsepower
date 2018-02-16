@@ -1,5 +1,7 @@
 namespace hp {
-  export class doc extends component {
+  export class doc extends element {
+
+
 
   }
 }

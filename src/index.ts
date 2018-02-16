@@ -5,6 +5,9 @@ namespace hp {
   export function observe<T extends element>(selector: string | HTMLElement | Document | Window, ...comps: componentType<T>[]): void {
     comps.forEach(comp => {
       component.observers.push(new observer(comp, selector))
+      if (selector instanceof Document || selector instanceof Window) {
+        component.createNewComponent(selector, comp)
+      }
       // Run the component global ticker
       if (!domLoaded) {
         domLoaded = true

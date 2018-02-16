@@ -2,27 +2,72 @@ namespace hp {
 
   export interface element {
     clicked(button: number): void
+    heldDown(button: number): void
     doubleClicked(button: number): void
+    keydown(key: string, code?: number): void
+    keyup(key: string, code?: number): void
+    keypress(key: string, code?: number): void
   }
 
   export class element extends component {
 
-    public get childCount(): number { return this.element.childNodes.length }
+    protected shiftHeld: boolean = false
+    protected ctrlHeld: boolean = false
+    protected altHeld: boolean = false
+    private timeoutid: number = 0
 
-    public constructor(element?: HTMLElement | Document | Window) {
-      super(element)
-      typeof this.clicked == 'function' && this.element.addEventListener('click', this.onClicked.bind(this))
-      typeof this.doubleClicked == 'function' && this.element.addEventListener('dblclick', this.onDoubleClicked.bind(this))
+    public get childCount(): number { return this.element.childNodes.length }
+    public get id(): string { return this.element.id }
+
+    public constructor(node?: HTMLElement | Document | Window) {
+      super(node)
+      typeof this.clicked == 'function' && this.node.addEventListener('click', this.onClicked.bind(this))
+      typeof this.doubleClicked == 'function' && this.node.addEventListener('dblclick', this.onDoubleClicked.bind(this))
+      typeof this.keyup == 'function' && this.node.addEventListener('keyup', this.onKeyUp.bind(this))
+      typeof this.keydown == 'function' && this.node.addEventListener('keydown', this.onKeyDown.bind(this))
+      typeof this.keypress == 'function' && this.node.addEventListener('keypress', this.onKeyPress.bind(this))
+      if (typeof this.heldDown == 'function') {
+        this.node.addEventListener('touchstart', e => this.startClickHold(e as MouseEvent))
+        this.node.addEventListener('mousedown', e => this.startClickHold(e as MouseEvent))
+        this.node.addEventListener('touchend', e => this.stopClickHold())
+        this.node.addEventListener('touchcancel', e => this.stopClickHold())
+        this.node.addEventListener('mouseup', e => this.stopClickHold())
+        this.node.addEventListener('mouseout', e => this.stopClickHold())
+      }
+    }
+
+    private startClickHold(e: MouseEvent) {
+      this.timeoutid = setTimeout(() => this.onClickHeld(e), 500)
+    }
+    private stopClickHold() {
+      clearTimeout(this.timeoutid)
     }
 
     private onClicked(e: MouseEvent) {
       e.preventDefault()
-      typeof this.clicked == 'function' && this.clicked(e.button)
+      this.clicked(e.button)
+    }
+
+    private onClickHeld(e: MouseEvent) {
+      e.preventDefault()
+      this.heldDown(e.button)
     }
 
     private onDoubleClicked(e: MouseEvent) {
       e.preventDefault()
-      typeof this.doubleClicked == 'function' && this.doubleClicked(e.button)
+      this.doubleClicked(e.button)
+    }
+
+    private onKeyUp(e: KeyboardEvent) {
+      this.keyup(e.key, e.keyCode)
+    }
+
+    private onKeyDown(e: KeyboardEvent) {
+      this.keydown(e.key, e.keyCode)
+    }
+
+    private onKeyPress(e: KeyboardEvent) {
+      this.keypress(e.key, e.keyCode)
     }
 
     /**

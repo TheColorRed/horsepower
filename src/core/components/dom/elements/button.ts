@@ -9,12 +9,12 @@ namespace hp {
       if (typeof this.accept == 'function') {
         if (this.element instanceof HTMLButtonElement ||
           (this.element instanceof HTMLInputElement && ['button', 'submit', 'reset'].indexOf(this.element.getAttribute('type') || '') != -1)) {
-          this.element.addEventListener('click', this.onButtonAccept.bind(this))
+          this.node.addEventListener('click', this.onButtonAccept.bind(this))
         }
       } else if (typeof this.reject == 'function') {
         if (this.element instanceof HTMLButtonElement ||
           (this.element instanceof HTMLInputElement && ['button', 'submit', 'reset'].indexOf(this.element.getAttribute('type') || '') != -1)) {
-          this.element.addEventListener('click', this.onButtonReject.bind(this))
+          this.node.addEventListener('click', this.onButtonReject.bind(this))
         }
       }
     }
