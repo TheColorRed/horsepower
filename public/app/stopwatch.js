@@ -29,8 +29,7 @@ class stopwatch extends hp.element {
         let m = Math.floor(newVal % 3600 / 60).toString().padStart(2, '0')
         let s = Math.floor(newVal % 3600 % 60).toString().padStart(2, '0')
         let ms = ((new String(newVal).split('.')[1] || '00').substr(0, 2)).padStart(2, '0')
-        let t = `${h}:${m}:${s}.${ms}`
-        this.textContent(t)
+        this.textContent(`${h}:${m}:${s}.${ms}`)
       })
     }
   }

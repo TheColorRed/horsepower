@@ -1,7 +1,7 @@
 namespace hp {
 
   export interface componentType<T extends element> {
-    new(element?: HTMLElement): T
+    new(element?: HTMLElement | Document | Window): T
     tick(components: component[]): any
     runStaticTick(comp: componentType<element>, tick?: number): void
   }
@@ -20,17 +20,25 @@ namespace hp {
 
   export class observer<T extends element> {
     public readonly component: componentType<T>
-    public readonly selectors: string[]
+    public readonly selector: string | HTMLElement | Document | Window
 
-    public constructor(component: componentType<T>, ...selectors: string[]) {
+    public constructor(component: componentType<T>, selectors: string | HTMLElement | Document | Window) {
       this.component = component
-      this.selectors = selectors
+      this.selector = selectors
     }
   }
 
   export abstract class component {
 
-    public readonly element: HTMLElement
+    private readonly _element: HTMLElement | Document | Window
+
+    public get element(): HTMLElement {
+      let el: HTMLElement
+      if (this._element instanceof Window) el = this._element.document.body
+      else if (this._element instanceof Document) el = this._element.body
+      else el = this._element
+      return el
+    }
 
     public static observer: MutationObserver
     public static observers: observer<any>[] = []
@@ -43,9 +51,9 @@ namespace hp {
     // private proxies: object[] = []
     // private proxy: proxy
 
-    public constructor(element?: HTMLElement) {
+    public constructor(element?: HTMLElement | Document | Window) {
       component.components.push(this)
-      this.element = !element ? document.createElement('div') : element
+      this._element = !element ? window.document.createElement('div') : element
     }
 
     // Overwriteable methods
@@ -267,7 +275,7 @@ namespace hp {
      */
     public siblingComponent<T extends element>(comp: componentType<T>, callback?: (item: T) => void): T | null {
       let c = component.components.find(c => {
-        if (this.element.parentElement) {
+        if (this.element instanceof HTMLElement && this.element.parentElement) {
           let nodes = this.element.parentElement.childNodes
           for (let i = 0; i < nodes.length; i++) {
             return c instanceof comp && c.element == nodes[i]
@@ -306,7 +314,7 @@ namespace hp {
       let inclusive = args.length == 3 ? args[1] : false
       let callback = args.length == 3 ? args[2] : args[1]
       let components = component.components.filter(c => {
-        if (this.element.parentElement) {
+        if (this.element instanceof HTMLElement && this.element.parentElement) {
           let nodes = this.element.parentElement.childNodes
           for (let i = 0; i < nodes.length; i++) {
             if (inclusive) {

@@ -2,7 +2,7 @@ namespace hp {
 
   let domLoaded: boolean = false
 
-  export function observe<T extends element>(selector: string, ...comps: componentType<T>[]): void {
+  export function observe<T extends element>(selector: string | HTMLElement | Document | Window, ...comps: componentType<T>[]): void {
     comps.forEach(comp => {
       component.observers.push(new observer(comp, selector))
       // Run the component global ticker
@@ -27,7 +27,12 @@ namespace hp {
           let target = mutation.target as HTMLElement
           if (mutation.type == 'childList') {
             component.observers.forEach(observer => {
-              let items = Array.from(document.body.querySelectorAll<HTMLElement>(observer.selectors.join(',')))
+              let items: HTMLElement[] = []
+              if (typeof observer.selector == 'string') {
+                items = Array.from(document.body.querySelectorAll<HTMLElement>(observer.selector))
+              } else if (observer.selector instanceof HTMLElement) {
+                items.push(observer.selector)
+              }
               items.forEach(item => component.createNewComponent(item, observer.component, mutation))
             })
             if (mutation.addedNodes.length > 0) {

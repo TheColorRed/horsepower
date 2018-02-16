@@ -9,7 +9,7 @@ namespace hp {
 
     public get childCount(): number { return this.element.childNodes.length }
 
-    public constructor(element?: HTMLElement) {
+    public constructor(element?: HTMLElement | Document | Window) {
       super(element)
       typeof this.clicked == 'function' && this.element.addEventListener('click', this.onClicked.bind(this))
       typeof this.doubleClicked == 'function' && this.element.addEventListener('dblclick', this.onDoubleClicked.bind(this))

@@ -1,20 +1,12 @@
 class clock extends hp.element {
-
   tick() {
-    this.setAttribute('data-date', Date.now())
-    return 1000
-  }
-
-  modified() {
-    let date = new Date(this.getInt('data-date'))
+    let date = new Date()
     let hour = date.getHours()
     let min = date.getMinutes()
     let sec = date.getSeconds()
     this.textContent(`${hour > 12 ? hour - 12 : hour}:${min < 10 ? '0' + min : min}:${sec < 10 ? '0' + sec : sec} ${hour > 12 ? 'PM' : 'AM'}`)
+    return 1000
   }
-
 }
 
-// Create an observer to watch items with the class "test"
-// and watch for when they are added, removed or modified
 hp.observe('.clock', clock)

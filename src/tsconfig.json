@@ -17,6 +17,7 @@
     "util/**/*.ts",
     "core/component.ts",
     "core/components/dom/element.ts",
+    "core/components/dom/document.ts",
     "core/components/dom/elements/form.ts",
     "core/**/*.ts",
     "index.ts"
