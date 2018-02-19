@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:100');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+h1 {
+  font-size: 100px;
+  font-weight: 100;
+}
+
+#carousel {
+  height: 50vh;
+  width: 50vw;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin: auto;
+  overflow: hidden;
+}
+
+#carousel > .items {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  height: inherit;
+  width: inherit;
+  flex: 1;
+  transform: translateX(0px);
+  transition: transform 200ms ease-in-out;
+}
+
+#carousel > .next-prev {
+  cursor: pointer;
+  z-index: 100;
+  position: absolute;
+  height: inherit;
+  font-size: 40px;
+  display: flex;
+  align-items: center;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  margin: auto;
+}
+
+#carousel > .right {
+  left: initial;
+  right: 0;
+}
+
+#carousel > .next-prev {
+  color: #ffffff;
+  height: inherit;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 20px;
+  transition: background 200ms ease-in-out;
+}
+
+#carousel > .next-prev:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+#carousel > .items > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  min-width: 100%;
+  height: inherit;
+  color: #ffffff;
+  padding: 0 40px;
+}
+
+#carousel > .items > div:nth-child(1) {
+  background-color: #ff0000;
+}
+
+#carousel > .items > div:nth-child(2) {
+  background-color: #00ff00;
+}
+
+#carousel > .items > div:nth-child(3) {
+  background-color: #0000ff;
+}

@@ -11,6 +11,8 @@ namespace hp {
       // Run the component global ticker
       if (!domLoaded) {
         domLoaded = true
+        // document.addEventListener('keydown', e => component['_keyboard'] = new keyboard(e))
+        // document.addEventListener('mousedown', e => component['_mouse'] = new mouse(e))
         document.addEventListener('DOMContentLoaded', () => {
           let componentExists = component.components.find(c => c instanceof comp)
           if (!componentExists) {
@@ -32,7 +34,7 @@ namespace hp {
             component.observers.forEach(observer => {
               let items: HTMLElement[] = []
               if (typeof observer.selector == 'string') {
-                items = Array.from(document.body.querySelectorAll<HTMLElement>(observer.selector))
+                items = Array.from(document.querySelectorAll<HTMLElement>(observer.selector))
               } else if (observer.selector instanceof HTMLElement) {
                 items.push(observer.selector)
               }

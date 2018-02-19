@@ -14,6 +14,11 @@ namespace hp {
     deleted(mutation?: MutationRecord): void
     childrenAdded(children: NodeList): void
     childrenRemoved(children: NodeList): void
+    keydown(keyboard: keyboard): void
+    keyup(keyboard: keyboard): void
+    clicked(mouse: mouse): void
+    heldDown(mouse: mouse): void
+    doubleClicked(mouse: mouse): void
     tick(): any
     loop(): any
   }
@@ -31,7 +36,14 @@ namespace hp {
   export abstract class component {
 
     private readonly _node: HTMLElement | Document | Window
+    private static _keyboard: keyboard = new keyboard
+    private static _mouse: mouse = new mouse
 
+    private clicktimeoutid: number = 0
+
+    public get keyboard(): keyboard { return component._keyboard }
+    public get mouse(): mouse { return component._mouse }
+    public get node(): HTMLElement | Document | Window { return this._node }
     public get element(): HTMLElement {
       let el: HTMLElement
       if (this._node instanceof Window) el = this._node.document.body
@@ -40,9 +52,6 @@ namespace hp {
       return el
     }
 
-    public get node(): HTMLElement | Document | Window {
-      return this._node
-    }
 
     public static observer: MutationObserver
     public static observers: observer<any>[] = []
@@ -50,14 +59,52 @@ namespace hp {
 
     public hasCreated: boolean = false
 
-    // private boundValues: { [key: string]: any } = {}
-    // private proxies: proxy[] = []
-    // private proxies: object[] = []
-    // private proxy: proxy
-
     public constructor(node?: HTMLElement | Document | Window) {
       component.components.push(this)
       this._node = !node ? window.document.createElement('div') : node
+      this.node.addEventListener('keydown', this.onKeyDown.bind(this))
+      typeof this.keyup == 'function' && this.node.addEventListener('keyup', this.onKeyUp.bind(this))
+      typeof this.clicked == 'function' && this.node.addEventListener('click', this.onClicked.bind(this))
+      typeof this.doubleClicked == 'function' && this.node.addEventListener('dblclick', this.onDoubleClicked.bind(this))
+      if (typeof this.heldDown == 'function') {
+        this.node.addEventListener('touchstart', e => this.startClickHold(e as MouseEvent))
+        this.node.addEventListener('mousedown', e => this.startClickHold(e as MouseEvent))
+        this.node.addEventListener('touchend', e => this.stopClickHold())
+        this.node.addEventListener('touchcancel', e => this.stopClickHold())
+        this.node.addEventListener('mouseup', e => this.stopClickHold())
+        this.node.addEventListener('mouseout', e => this.stopClickHold())
+      }
+    }
+
+    private onKeyDown(e: KeyboardEvent) {
+      component['_keyboard'] = new keyboard(e)
+      typeof this.keydown == 'function' && this.keyboard && this.keydown(this.keyboard)
+    }
+
+    private onKeyUp() {
+      this.keyboard && this.keyup(this.keyboard)
+    }
+
+    private startClickHold(e: MouseEvent) {
+      this.clicktimeoutid = setTimeout(() => this.onClickHeld(e), 500)
+    }
+    private stopClickHold() {
+      clearTimeout(this.clicktimeoutid)
+    }
+
+    private onClicked(e: MouseEvent) {
+      e.preventDefault()
+      this.clicked(this.mouse)
+    }
+
+    private onClickHeld(e: MouseEvent) {
+      e.preventDefault()
+      this.heldDown(this.mouse)
+    }
+
+    private onDoubleClicked(e: MouseEvent) {
+      e.preventDefault()
+      this.doubleClicked(this.mouse)
     }
 
     // Overwriteable methods
@@ -174,6 +221,72 @@ namespace hp {
       return comps
     }
 
+    public childElements(callback?: (comp: element) => void): element[] {
+      let elements = Array.from(this.element.children) as HTMLElement[]
+      let comps: element[] = []
+      elements.forEach(el => {
+        let comp = component.components.find(c => c.element == el)
+        if (!comp) {
+          comp = component.createNewComponent(el, element)
+        }
+        comp instanceof element && comps.push(comp)
+        typeof callback == 'function' && comp instanceof element && callback(comp)
+      })
+      return comps
+    }
+
+    public broadcast(method: string, ...args: any[]) {
+      component.components
+        .filter(c => c.element == this.element)
+        .forEach((comp: any) => typeof comp[method] == 'function' && comp[method](...args))
+    }
+
+    public broadcastTo<T extends element>(comp: componentType<T> | string | HTMLElement | Document | Window, method: string, ...args: any[]) {
+      if (typeof comp == 'string') {
+        Array.from(document.querySelectorAll(comp)).forEach(el => {
+          component.components.filter(c => c.element == el).forEach((c: any) => typeof c[method] == 'function' && c[method](...args))
+        })
+      } else if (comp instanceof HTMLElement || comp instanceof Document || comp instanceof Window) {
+        component.components.filter(c => c.node == comp).forEach((c: any) => typeof c[method] == 'function' && c[method](...args))
+      } else {
+        component.components.filter(c => c instanceof comp).forEach((c: any) => typeof c[method] == 'function' && c[method](...args))
+      }
+    }
+
+    public broadcastAll(method: string, ...args: any[]) {
+      component.components.forEach((comp: any) => typeof comp[method] == 'function' && comp[method](...args))
+    }
+
+
+    // public broadcast(method: string, args?: any[]): void
+    // public broadcast(selector: string, method: string, args?: any[]): void
+    // public broadcast<T extends element>(element: componentType<T> | HTMLElement | Document | Window, method: string, args?: any[]): void
+    // public broadcast(...args: any[]) {
+    //   let element: HTMLElement | Document | Window
+    //   let method = ''
+    //   let methodargs: any[] = []
+    //   if (args[0] instanceof component) {
+    //     element = args.shift().element
+    //     method = args.shift()
+    //   } else if (args[0] instanceof HTMLElement || args[0] instanceof Document || args[0] instanceof Window) {
+    //     element = args.shift()
+    //     method = args.shift()
+    //   } else if (typeof args[0] == 'string' && typeof args[1] == 'string') {
+    //     element = document.querySelector(args.shift())
+    //     method = args.shift()
+    //   } else {
+    //     element = this.element
+    //     method = args.shift()
+    //   }
+    //   methodargs = args
+    //   console.log(element)
+    //   if (element && method) {
+    //     component.components.filter(c => c.element == element).forEach((comp: any) => {
+    //       typeof comp[method] == 'function' && comp[method](...methodargs)
+    //     })
+    //   }
+    // }
+
     /**
      * Finds the first parent with a specific component
      *
@@ -263,9 +376,11 @@ namespace hp {
       return c
     }
 
-    public childComponents<T extends element>(comp: componentType<T>): T[] {
-      let items = Array.from(this.element.querySelectorAll('*'))
-      return component.components.filter(c => c instanceof comp && items.indexOf(c.element) > -1) as T[]
+    public childComponents<T extends element>(comp: componentType<T>, callback?: (item: T) => void): T[] {
+      let items = Array.from(this.element.querySelectorAll<HTMLElement>('*'))
+      let comps = component.components.filter(c => c instanceof comp && items.indexOf(c.element) > -1) as T[]
+      typeof callback == 'function' && comps.forEach(c => callback(c))
+      return comps
     }
 
     /**

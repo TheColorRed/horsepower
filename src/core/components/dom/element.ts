@@ -1,73 +1,17 @@
 namespace hp {
 
-  export interface element {
-    clicked(button: number): void
-    heldDown(button: number): void
-    doubleClicked(button: number): void
-    keydown(key: string, code?: number): void
-    keyup(key: string, code?: number): void
-    keypress(key: string, code?: number): void
-  }
-
   export class element extends component {
-
-    protected shiftHeld: boolean = false
-    protected ctrlHeld: boolean = false
-    protected altHeld: boolean = false
-    private timeoutid: number = 0
 
     public get childCount(): number { return this.element.childNodes.length }
     public get id(): string { return this.element.id }
 
+    public get width(): number { return this.element.clientWidth }
+    public get scrollWidth(): number { return this.element.scrollWidth }
+    public get height(): number { return this.element.clientHeight }
+    public get scrollHeight(): number { return this.element.scrollHeight }
+
     public constructor(node?: HTMLElement | Document | Window) {
       super(node)
-      typeof this.clicked == 'function' && this.node.addEventListener('click', this.onClicked.bind(this))
-      typeof this.doubleClicked == 'function' && this.node.addEventListener('dblclick', this.onDoubleClicked.bind(this))
-      typeof this.keyup == 'function' && this.node.addEventListener('keyup', this.onKeyUp.bind(this))
-      typeof this.keydown == 'function' && this.node.addEventListener('keydown', this.onKeyDown.bind(this))
-      typeof this.keypress == 'function' && this.node.addEventListener('keypress', this.onKeyPress.bind(this))
-      if (typeof this.heldDown == 'function') {
-        this.node.addEventListener('touchstart', e => this.startClickHold(e as MouseEvent))
-        this.node.addEventListener('mousedown', e => this.startClickHold(e as MouseEvent))
-        this.node.addEventListener('touchend', e => this.stopClickHold())
-        this.node.addEventListener('touchcancel', e => this.stopClickHold())
-        this.node.addEventListener('mouseup', e => this.stopClickHold())
-        this.node.addEventListener('mouseout', e => this.stopClickHold())
-      }
-    }
-
-    private startClickHold(e: MouseEvent) {
-      this.timeoutid = setTimeout(() => this.onClickHeld(e), 500)
-    }
-    private stopClickHold() {
-      clearTimeout(this.timeoutid)
-    }
-
-    private onClicked(e: MouseEvent) {
-      e.preventDefault()
-      this.clicked(e.button)
-    }
-
-    private onClickHeld(e: MouseEvent) {
-      e.preventDefault()
-      this.heldDown(e.button)
-    }
-
-    private onDoubleClicked(e: MouseEvent) {
-      e.preventDefault()
-      this.doubleClicked(e.button)
-    }
-
-    private onKeyUp(e: KeyboardEvent) {
-      this.keyup(e.key, e.keyCode)
-    }
-
-    private onKeyDown(e: KeyboardEvent) {
-      this.keydown(e.key, e.keyCode)
-    }
-
-    private onKeyPress(e: KeyboardEvent) {
-      this.keypress(e.key, e.keyCode)
     }
 
     /**
@@ -140,7 +84,7 @@ namespace hp {
      * @returns {this}
      * @memberof element
      */
-    public css(key: string, value: any): this
+    public css(key: string, value: string | number): this
     /**
      * Sets multiple styles on the element
      *
@@ -150,7 +94,7 @@ namespace hp {
      */
     public css(items: object): this
     public css(...args: any[]) {
-      if (args[0] instanceof Object) {
+      if (typeof args[0] == 'object') {
         for (let key in args[0]) { (<any>this.element.style)[key] = args[0][key] }
       } else {
         this.element.style[args[0]] = args[1]
@@ -451,7 +395,7 @@ namespace hp {
       if (!element) { el = this.element }
       else { el = element instanceof HTMLElement ? element : element.element }
       el && el.remove()
-      el && component.components.forEach((c: any) => c.element == el && (c.element = null))
+      el && component.components.forEach((c: any) => c.element == el && (c['_element'] = null))
       this.removeEmptyComponents()
     }
 
@@ -483,6 +427,28 @@ namespace hp {
      */
     public toggleClass(...classList: string[]) {
       classList.forEach(c => this.element.classList.toggle(c))
+    }
+
+    /**
+     * Checks if one of the classes exist on the element
+     *
+     * @param {...string[]} classList
+     * @returns
+     * @memberof element
+     */
+    public hasClass(...classList: string[]) {
+      return Array.from(this.element.classList).filter(c => classList.indexOf(c) > -1).length > 0
+    }
+
+    /**
+     * Checks if all classes exist on the element
+     *
+     * @param {...string[]} classList
+     * @returns
+     * @memberof element
+     */
+    public hasClasses(...classList: string[]) {
+      return Array.from(this.element.classList).filter(c => classList.indexOf(c) > -1).length == classList.length
     }
 
     /**

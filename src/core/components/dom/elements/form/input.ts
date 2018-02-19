@@ -1,7 +1,7 @@
 namespace hp {
 
   export interface input {
-    input(value: string): void
+    input(value: keyboard): void
     acceptKey: number | number[]
     rejectKey: number | number[]
   }
@@ -17,7 +17,6 @@ namespace hp {
     public constructor(element?: HTMLInputElement) {
       super(element)
       this.node.addEventListener('keydown', this.onInputKeyDown.bind(this))
-      this.node.addEventListener('keyup', this.onInputKeyUp.bind(this))
       this.node.addEventListener('input', this.onInput.bind(this))
     }
 
@@ -27,14 +26,11 @@ namespace hp {
       this._lastValue = this._currentValue
       this._currentValue = el.value
       if (typeof this.input == 'function') {
-        this.input(e.key)
+        this.input(this.keyboard)
       }
     }
 
     private onInputKeyDown(e: KeyboardEvent) {
-      this.altHeld = e.altKey
-      this.shiftHeld = e.shiftKey
-      this.ctrlHeld = e.ctrlKey
       if (typeof this.accept == 'function' && this.element instanceof HTMLInputElement) {
         let acceptKey = this.acceptKey || [13]
         acceptKey = !Array.isArray(acceptKey) ? [acceptKey] : acceptKey
@@ -51,12 +47,6 @@ namespace hp {
           this.reject(this.element.value)
         }
       }
-    }
-
-    private onInputKeyUp(e: KeyboardEvent) {
-      this.altHeld = e.altKey
-      this.shiftHeld = e.shiftKey
-      this.ctrlHeld = e.ctrlKey
     }
   }
 }

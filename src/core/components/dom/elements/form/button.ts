@@ -1,7 +1,5 @@
 namespace hp {
 
-  export enum mouseButton { left = 0, middle = 1, right = 2 }
-
   export abstract class button extends form {
 
     public constructor(element?: HTMLElement) {
