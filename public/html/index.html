@@ -6,59 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <script src="/horsepower/hp.min.js"></script>
+  <script src="/app/index.js"></script>
   <title>Horsepower Tests</title>
-  <script>
-    class links extends hp.link {
-      clicked() {
-        this.findElement('iframe', item => {
-          item.setAttribute('src', this.href)
-        })
-      }
-    }
-    hp.observe('#nav a', links)
-  </script>
   <link rel="stylesheet" href="/css/index.css">
 </head>
-
-
 
 <body>
   <main>
     <div id="nav">
-      <ul>
-        <li>
-          <a href="/html/ajax.html">Ajax</a>
-        </li>
-        <li>
-          <a href="/html/bind.html">Binding</a>
-        </li>
-        <li>
-          <a href="/html/blockchain.html">Blockchain Websocket</a>
-        </li>
-        <li>
-          <a href="/html/calculator.html">Calculator</a>
-        </li>
-        <li>
-          <a href="/html/carousel.html">Carousel</a>
-        </li>
-        <li>
-          <a href="/html/checklist.html">Checklist</a>
-        </li>
-        <li>
-          <a href="/html/clock.html">Clock</a>
-        </li>
-        <li>
-          <a href="/html/creation.html">Creation</a>
-        </li>
-        <li>
-          <a href="/html/inputblock.html">Allow/Block Input</a>
-        </li>
-        <li>
-          <a href="/html/stopwatch.html">Stopwatch</a>
-        </li>
-      </ul>
+      <ul></ul>
     </div>
-    <iframe src="" frameborder="0"></iframe>
+    <iframe src="/" frameborder="0"></iframe>
   </main>
 </body>
 

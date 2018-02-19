@@ -10,7 +10,7 @@ class inputblock extends hp.input {
     // Allows numbers, decimals, basic math and navigation
     this.hasClass('numbers') && keyboard.allow(/\d/, '.', 'basic math', 'navigation')
     // Blocks the custom keybinnding
-    this.hasClass('custom') && keyboard.allow('my keybinding')
+    this.hasClass('custom') && keyboard.allow('my keybinding', 'navigation')
   }
 }
 

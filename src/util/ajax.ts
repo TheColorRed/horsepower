@@ -5,7 +5,9 @@ namespace hp {
       let request = await fetch(url, options)
       let response = await request.text()
       try {
-        return JSON.parse(response)
+        let json = JSON.parse(response)
+        component.components.forEach(comp => typeof comp.ajax == 'function' && comp.ajax(json))
+        return json
       } catch (e) {
         return response
       }

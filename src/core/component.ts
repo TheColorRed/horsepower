@@ -9,11 +9,13 @@ namespace hp {
   export interface component {
     ajax(data: any): void
     created(mutation?: MutationRecord): void
+    removed(): void
     modified(oldValue: any, newValue: any, attr: any, mutation?: MutationRecord): void
     changed(newValue: any, oldValue: any, key: string | string[]): void
     deleted(mutation?: MutationRecord): void
     childrenAdded(children: NodeList): void
     childrenRemoved(children: NodeList): void
+    childrenChanged(children: NodeList): void
     keydown(keyboard: keyboard): void
     keyup(keyboard: keyboard): void
     clicked(mouse: mouse): void
@@ -177,6 +179,17 @@ namespace hp {
       return c
     }
 
+    public findChildComponent<T extends element>(comp: componentType<T>, callback?: (comp: T) => void): T | undefined {
+      let elements = Array.from(this.element.querySelectorAll('*'))
+      for (let i = 0; i < elements.length; i++) {
+        let c = component.components.find(c => c instanceof comp && c.element == elements[i]) as T
+        if (c) {
+          c instanceof component && typeof callback == 'function' && callback(c)
+          return c
+        }
+      }
+    }
+
     /**
      * Finds all instances of a component
      *
@@ -205,6 +218,19 @@ namespace hp {
       return comp as element
     }
 
+    public findChildElement(selector: string, callback?: (comp: element) => void): element | undefined {
+      let el = this.element.querySelector(selector) as HTMLElement
+      let comp: element | undefined
+      if (el) {
+        comp = component.components.find(c => c.element == el) as element
+        if (!comp) {
+          comp = component.createNewComponent(el, element)
+        }
+      }
+      typeof callback == 'function' && comp instanceof element && callback(comp)
+      return comp as element
+    }
+
     public findElements(selector: string, callback?: (comp: element) => void): element[] {
       let elements: HTMLElement[] = Array.from(document.querySelectorAll(selector))
       let comps: element[] = []
@@ -217,6 +243,20 @@ namespace hp {
           comp instanceof element && comps.push(comp)
           typeof callback == 'function' && comp instanceof element && callback(comp)
         }
+      })
+      return comps
+    }
+
+    public findChildElements(selector: string, callback?: (comp: element) => void): element[] {
+      let elements = Array.from(this.element.querySelectorAll(selector)) as HTMLElement[]
+      let comps: element[] = []
+      elements.forEach(el => {
+        let comp = component.components.find(c => c.element == el)
+        if (!comp) {
+          comp = component.createNewComponent(el, element)
+        }
+        comp instanceof element && comps.push(comp)
+        typeof callback == 'function' && comp instanceof element && callback(comp)
       })
       return comps
     }

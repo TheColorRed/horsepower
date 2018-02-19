@@ -41,10 +41,20 @@ namespace hp {
               items.forEach(item => component.createNewComponent(item, observer.component, mutation))
             })
             if (mutation.addedNodes.length > 0) {
-              component.components.filter(c => c.element == target).forEach(c => { typeof c.childrenAdded == 'function' && c.childrenAdded(mutation.addedNodes) })
+              component.components.filter(c => c.element == target).forEach(c => {
+                typeof c.childrenAdded == 'function' && c.childrenAdded(mutation.addedNodes)
+                typeof c.childrenChanged == 'function' && c.childrenChanged(mutation.addedNodes)
+              })
             }
             if (mutation.removedNodes.length > 0) {
-              component.components.filter(c => c.element == target).forEach(c => typeof c.childrenRemoved == 'function' && c.childrenRemoved(mutation.removedNodes))
+              component.components.filter(c => c.element == target).forEach(c => {
+                let removed = Array.from(mutation.removedNodes)
+                component.components.filter(comp => removed.indexOf(comp.element) > -1).forEach(comp => {
+                  typeof comp.removed == 'function' && comp.removed()
+                })
+                typeof c.childrenRemoved == 'function' && c.childrenRemoved(mutation.removedNodes)
+                typeof c.childrenChanged == 'function' && c.childrenChanged(mutation.removedNodes)
+              })
             }
           } else if (mutation.type == 'attributes') {
             component.components.filter(comp => comp.element == target).forEach(c => {

@@ -40,8 +40,13 @@ main #nav a {
   padding: 10px;
 }
 
-main #nav a:hover {
-  background-color: #999;
+main #nav li.active a {
+  background-color: #2196f3;
+  color: #fff;
+}
+
+main #nav li:hover:not(.active) a {
+  background-color: #444;
 }
 
 main iframe {

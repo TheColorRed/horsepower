@@ -42,6 +42,7 @@ input[type=button] {
   font-size: 8em;
   color: #fff;
   border: 0;
+  box-shadow: initial;
 }
 
 #numbers>input[type=button] {
@@ -50,11 +51,19 @@ input[type=button] {
   flex-grow: 1;
 }
 
+#numbers>input[type=button]:hover {
+  background-color: #444;
+}
+
 #operators>input[type=button] {
   background-color: #999;
   width: 100%;
   flex-grow: 1;
   font-size: 5em;
+}
+
+#operators>input[type=button]:hover {
+  background-color: #888;
 }
 
 output {

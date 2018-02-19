@@ -131,6 +131,7 @@ namespace hp {
      * @memberof keyboard
      */
     public block(...names: (string | number | RegExp)[]) {
+      names.length == 0 && this._evt && this._evt.preventDefault()
       let keys = names.filter(n => !(n instanceof RegExp) && typeof n == 'string' && n.toLowerCase() === this.key.toLowerCase())
       let bindings = names.filter(n =>
         keyboard.keyboardBindings.find(b =>
@@ -175,7 +176,8 @@ namespace hp {
           )
         )
       )
-      if (keys.length == 0 && bindings.length == 0) {
+      if (keys.length == 0 && bindings.length == 0) this._evt && this._evt.preventDefault()
+      if (keys.length == 0) {
         names.filter(n => n instanceof RegExp).forEach(regex => {
           if (regex instanceof RegExp && !regex.test(this.key)) {
             this._evt && this._evt.preventDefault()

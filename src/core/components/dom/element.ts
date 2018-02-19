@@ -4,6 +4,7 @@ namespace hp {
 
     public get childCount(): number { return this.element.childNodes.length }
     public get id(): string { return this.element.id }
+    public set id(value: string) { this.element.id = value }
 
     public get width(): number { return this.element.clientWidth }
     public get scrollWidth(): number { return this.element.scrollWidth }
@@ -248,10 +249,10 @@ namespace hp {
      * @returns {T}
      * @memberof element
      */
-    public appendElement<T extends HTMLElement>(element: string, content?: string, asText: boolean = false): T {
+    public appendElement<T extends HTMLElement>(element: string, content?: string, asText: boolean = false): element {
       let el = this.makeElement<T>(element, content, asText)
       this.append(el)
-      return el
+      return component.createNewComponent(el, hp.element)
     }
 
     /**
@@ -477,7 +478,7 @@ namespace hp {
         attributes: []
       }
       obj.classList = (selector.match(/\.[a-z-_0-9]+/g) || []).map(v => v.replace('.', ''))
-      obj.element = selector.toLowerCase().split(/[^a-z]/, 2)[0] || 'div'
+      obj.element = selector.toLowerCase().split(/[^a-z0-9]/, 2)[0] || 'div'
       obj.attributes = (selector.match(/\[.+?\]/g) || []).reduce<{ key: string, value: string }[]>((r, v) => {
         let [key, value] = v.split('=')
         key = !key ? '' : key
