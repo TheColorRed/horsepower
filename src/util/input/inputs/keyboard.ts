@@ -6,7 +6,7 @@ namespace hp {
 
   export class keyboard extends userinput {
     private _key: string = ''
-    private _keyControl: string = ''
+    private _keyModifier: string = ''
     private _code: number = -1
     private _shift: boolean = false
     private _ctrl: boolean = false
@@ -14,6 +14,7 @@ namespace hp {
     private _evt?: KeyboardEvent
 
     public get key(): string { return this._key }
+    public get keyModifier(): string { return this._keyModifier }
     public get code(): number { return this._code }
     public get shift(): boolean { return this._shift }
     public get ctrl(): boolean { return this._ctrl }
@@ -33,7 +34,7 @@ namespace hp {
         this._shift && key.push('shift')
         key.push(evt.key)
         this._key = evt.key.toLowerCase()
-        this._keyControl = key.join('+').toLowerCase()
+        this._keyModifier = key.join('+').toLowerCase()
       }
     }
 
