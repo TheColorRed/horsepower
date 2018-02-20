@@ -12,6 +12,9 @@ namespace hp {
     removed(): void
     modified(oldValue: any, newValue: any, attr: any, mutation?: MutationRecord): void
     changed(newValue: any, oldValue: any, key: string | string[]): void
+    onScope(value: any, prop: string): void
+    bindingChanged(newValue: any, oldValue: any, prop: string): void
+    updated(value: any, prop: string): void
     deleted(mutation?: MutationRecord): void
     childrenAdded(children: NodeList): void
     childrenRemoved(children: NodeList): void
@@ -23,6 +26,7 @@ namespace hp {
     doubleClicked(mouse: mouse): void
     tick(): any
     loop(): any
+    [key: string]: any
   }
 
   export class observer<T extends element> {
@@ -36,6 +40,10 @@ namespace hp {
   }
 
   export abstract class component {
+
+    public readonly parent: component | null
+
+    public scope: { [key: string]: any } = new Object
 
     private readonly _node: HTMLElement | Document | Window
     private static _keyboard: keyboard = new keyboard
@@ -53,7 +61,6 @@ namespace hp {
       else el = this._node
       return el
     }
-
 
     public static observer: MutationObserver
     public static observers: observer<any>[] = []
@@ -76,6 +83,8 @@ namespace hp {
         this.node.addEventListener('mouseup', e => this.stopClickHold())
         this.node.addEventListener('mouseout', e => this.stopClickHold())
       }
+      this.parent = this.closestComponent(element)
+      this.bind()
     }
 
     private onKeyDown(e: KeyboardEvent) {
@@ -109,32 +118,110 @@ namespace hp {
       this.doubleClicked(this.mouse)
     }
 
+    private bind() {
+      this.addScope()
+      let propToBind = this.element.getAttribute('hp-model')
+      if (propToBind && this.isFormItem(this.element)) {
+        this.element.addEventListener('input', () => {
+          if (propToBind && this.isFormItem(this.element)) {
+            this.scope[propToBind] = this.element.value
+          }
+        })
+      }
+    }
+
+    private addScope() {
+      this.scope = new Proxy(this.scope, {
+        set: (target, property, value) => {
+          let prop = property.toString()
+          component.components.forEach(c => {
+            if (c.element == this.element && target[prop] && target[prop] != value) {
+              let functionName = `onScope${hp.snakeToCamel(prop).replace(/^(.)/, (v) => v.toUpperCase())}`
+              typeof c[functionName] == 'function' && c[functionName](value, prop)
+              typeof c.onScope == 'function' && c.onScope(value, prop)
+            }
+          })
+          Array.from(document.querySelectorAll('[hp-bind]')).forEach(el => {
+            let v = el.getAttribute('hp-bind')
+            let oldValue = ''
+            if (v == prop && target[prop] != value) {
+              if (this.isFormItem(el)) {
+                oldValue = el.value
+                el.value = value
+              } else {
+                oldValue = el.innerHTML
+                el.innerHTML = value
+              }
+              component.components.forEach(c => {
+                c.element == el && typeof c.bindingChanged == 'function' && c.bindingChanged(value, oldValue, prop)
+              })
+            }
+          })
+          return Reflect.set(target, prop, value)
+        },
+        get: (target, prop) => { return Reflect.get(target, prop) }
+      })
+    }
+
+    // this.scope = new Proxy(this.scope, {
+
+    // })
+    // if (!this.scope.hasOwnProperty(prop)) {
+    //   let value: any
+    //   Object.defineProperty(this.scope, prop, {
+    //     set: (newValue) => {
+    //       value = newValue
+    //       Array.from(document.querySelectorAll('[hp-bind]')).forEach(el => {
+    //         let v = el.getAttribute('hp-bind')
+    //         if (v == prop) {
+    //           if (this.isFormItem(el)) {
+    //             el.value = value
+    //           } else {
+    //             el.innerHTML = value
+    //           }
+    //           component.components.forEach(comp => comp.element == el && typeof comp.updated == 'function' && comp.updated(value, prop))
+    //         }
+    //       })
+    //     },
+    //     get: () => { return value },
+    //     enumerable: true
+    //   })
+    // }
+    // }
+
+    protected isFormItem(el: any): el is HTMLInputElement | HTMLButtonElement | HTMLTextAreaElement | HTMLSelectElement {
+      return el instanceof HTMLInputElement ||
+        el instanceof HTMLButtonElement ||
+        el instanceof HTMLSelectElement ||
+        el instanceof HTMLTextAreaElement
+    }
+
     // Overwriteable methods
     static tick(): any { }
 
-    public watch(item: { [key: string]: any }): { [key: string]: any }
-    public watch(key: string, value: any): typeof value
-    public watch(...args: any[]): any {
-      // !this.proxy && (this.proxy = new proxy().bind(this))
-      let prox = new proxy()
-      if (args.length == 2) {
-        prox[args[0]] = args[1]
-      } else if (args.length == 1 && args[0] instanceof Object) {
-        for (let itm in args[0]) {
-          !(itm in prox) && (prox[itm] = args[0][itm])
-        }
-      }
-      this.bind(prox)
-      return prox
-    }
+    // public watch(item: { [key: string]: any }): { [key: string]: any }
+    // public watch(key: string, value: any): typeof value
+    // public watch(...args: any[]): any {
+    //   // !this.proxy && (this.proxy = new proxy().bind(this))
+    //   let prox = new proxy()
+    //   if (args.length == 2) {
+    //     prox[args[0]] = args[1]
+    //   } else if (args.length == 1 && args[0] instanceof Object) {
+    //     for (let itm in args[0]) {
+    //       !(itm in prox) && (prox[itm] = args[0][itm])
+    //     }
+    //   }
+    //   this.bind(prox)
+    //   return prox
+    // }
 
-    public bind(...proxies: proxy[]) {
-      proxies.forEach(p => p.bind(this))
-    }
+    // public bind(...proxies: proxy[]) {
+    //   proxies.forEach(p => p.bind(this))
+    // }
 
-    public unbind(...proxies: proxy[]) {
-      proxies.forEach(p => p.unbind(this))
-    }
+    // public unbind(...proxies: proxy[]) {
+    //   proxies.forEach(p => p.unbind(this))
+    // }
 
     /**
      * Gets a specific component attached to the element
@@ -403,11 +490,11 @@ namespace hp {
      * @returns {component[]}
      * @memberof component
      */
-    public parent(callback?: (components: component[]) => void): component[] {
-      let components = component.components.filter(c => c.element == this.element.parentElement)
-      typeof callback == 'function' && callback(components)
-      return components
-    }
+    // public parent(callback?: (components: component[]) => void): component[] {
+    //   let components = component.components.filter(c => c.element == this.element.parentElement)
+    //   typeof callback == 'function' && callback(components)
+    //   return components
+    // }
 
     public childComponent<T extends element>(comp: componentType<T>, callback?: (item: T) => void): T | null {
       let items = Array.from(this.element.querySelectorAll('*'))

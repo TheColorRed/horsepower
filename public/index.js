@@ -25,7 +25,7 @@ app.all(/\/ajax\/.*/, (req, res) => {
 app.get('/nav', (req, res) => {
   res.json([
     { name: 'Ajax', file: '/html/ajax.html' },
-    { name: 'Binding', file: '/html/bind.html' },
+    { name: 'Binding', file: '/html/bind.html', active: true },
     { name: 'Blockchain Websocket', file: '/html/blockchain.html' },
     { name: 'Calculator', file: '/html/calculator.html' },
     { name: 'Carousel', file: '/html/carousel.html' },
@@ -34,12 +34,22 @@ app.get('/nav', (req, res) => {
     { name: 'Creation', file: '/html/creation.html' },
     { name: 'Allow/Block Input', file: '/html/inputblock.html' },
     { name: 'Stopwatch', file: '/html/stopwatch.html' },
-    { name: 'Shopping Cart', file: '/html/shoppingcart.html', active: true }
+    { name: 'Shopping Cart', file: '/html/shoppingcart.html' }
   ])
 })
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'html', 'index.html'))
+})
+
+app.get(/\/source.+/, (req, res) => {
+  if (req.path.endsWith('js')) {
+    res.sendFile(path.join(__dirname, 'app/tests', path.parse(req.path).base))
+  } else if (req.path.endsWith('html')) {
+    res.sendFile(path.join(__dirname, 'html', path.parse(req.path).base))
+  } else {
+    res.sendStatus(404)
+  }
 })
 
 app.get(/\.html$/, (req, res) => {

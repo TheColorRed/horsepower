@@ -75,18 +75,18 @@ namespace hp {
     })
   }
 
-  export function watch<T extends object>(item: T): proxy & T
-  export function watch<K extends string, V>(key: K, value: V): proxy & Record<K, V>
-  export function watch(...args: any[]): proxy {
-    let prox = new proxy()
-    if (args.length == 2) {
-      prox[args[0]] = args[1]
-    } else if (args.length == 1 && args[0] instanceof Object) {
-      for (let itm in args[0]) {
-        !(itm in prox) && (prox[itm] = args[0][itm])
-      }
-    }
-    return prox
-  }
+  // export function watch<T extends object>(item: T): proxy & T
+  // export function watch<K extends string, V>(key: K, value: V): proxy & Record<K, V>
+  // export function watch(...args: any[]): proxy {
+  //   let prox = new proxy()
+  //   if (args.length == 2) {
+  //     prox[args[0]] = args[1]
+  //   } else if (args.length == 1 && args[0] instanceof Object) {
+  //     for (let itm in args[0]) {
+  //       !(itm in prox) && (prox[itm] = args[0][itm])
+  //     }
+  //   }
+  //   return prox
+  // }
 
 }

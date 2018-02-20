@@ -15,6 +15,7 @@ class navLink extends hp.link {
     this.broadcastTo(navLink, 'deactivate')
     this.closestElement('li', li => li.addClass('active'))
     this.findElement('iframe', item => item.setAttribute('src', this.href))
+    // hp.ajax.get('/source' + this.path.replace(/html$/, 'js'))
   }
   deactivate() {
     this.closestElement('li', li => li.removeClass('active'))

@@ -20,7 +20,7 @@ namespace hp {
       case 'number':
         return value > 0 ? 0 : 1
       default:
-        return false
+        return true
     }
   }
 
@@ -40,5 +40,9 @@ namespace hp {
       v = v > 0 ? true : false
     }
     return v
+  }
+
+  export function snakeToCamel(s: string) {
+    return s.replace(/(\-\w)/g, function (m) { return m[1].toUpperCase(); });
   }
 }

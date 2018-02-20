@@ -1,3 +1,42 @@
+## Examples
+
+Whenever a nav link is clicked, deactivate all other nav links then activate the current link.
+
+```js
+class navLink extends hp.element {
+  clicked() {
+    this.broadcastTo(navLink, 'deactivate')
+    this.addClass('active')
+  }
+  deactivate() {
+    this.removeClass('active')
+  }
+}
+hp.observe('ul#nav > li > a', navLink)
+```
+
+Whenever the value of `name` is changed in the scope, `onScopeName` will be called and it will update `first` and `last` in the same scope.
+
+Anything that is bound to the scope items `name`, `first` and `last` in the dom will be updated when changed.
+
+```js
+class model extends hp.input {
+  onScopeName(value) {
+    let [first, last] = value.split(' ')
+    this.scope.first = first || ''
+    this.scope.last = last || ''
+  }
+}
+hp.observe('input', model)
+```
+
+```html
+<p><input type="text" name="" hp-model="name" placeholder="What is your name?"></p>
+<p>First Name: <strong hp-bind="first"></strong></p>
+<p>Last Name: <strong hp-bind="last"></strong></p>
+<p>Full Name: <strong hp-bind="name"></strong></p>
+```
+
 ## Components
 
 Components are the core of horsepower, all elements that you would like to be interactable via the horsepower framework must be attached to one or more components. From there is where the magic happens!
