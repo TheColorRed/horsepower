@@ -116,7 +116,7 @@ namespace hp {
           Reflect.set(target, property, newValue)
           if (oldValue == newValue) return true
           component.components.forEach(c => {
-            if (c.element == element || element instanceof HTMLBodyElement) {
+            if (c.element == element || element instanceof Document) {
               let fname = `onScope${hp.snakeToCamel(prop).replace(/^(.)/, v => v.toUpperCase())}`
               typeof c[fname] == 'function' && c[fname](newValue, oldValue)
               typeof c.onScope == 'function' && c.onScope(newValue, oldValue, prop)
