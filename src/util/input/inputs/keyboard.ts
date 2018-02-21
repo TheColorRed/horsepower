@@ -167,24 +167,20 @@ namespace hp {
     public allow(...names: (string | number | RegExp)[]) {
       let keys = names.filter(n => typeof n == 'string' && n.toLowerCase() === this.key.toLowerCase())
       let bindings = names.filter(n =>
+        // Test string keybindings
         keyboard.keyboardBindings.find(b =>
           b.name == n && b.keys.map(i => typeof i == 'string' && i.toString().toLowerCase()).indexOf(this.key) > -1
         )
       ).concat(
         names.filter(n =>
+          // Test regular expression key bindings
           keyboard.keyboardBindings.find(b =>
             b.name == n && b.keys.reduce((c: boolean[], v) => v instanceof RegExp && v.test(this.key) ? c.concat([true]) : c, []).length > 0
           )
         )
       )
-      if (keys.length == 0 && bindings.length == 0) this._evt && this._evt.preventDefault()
-      if (keys.length == 0) {
-        names.filter(n => n instanceof RegExp).forEach(regex => {
-          if (regex instanceof RegExp && !regex.test(this.key)) {
-            this._evt && this._evt.preventDefault()
-          }
-        })
-      }
+      let regexps = names.filter(n => n instanceof RegExp && n.test(this.key))
+      if (keys.length == 0 && bindings.length == 0 && regexps.length == 0) this._evt && this._evt.preventDefault()
       return true
     }
 

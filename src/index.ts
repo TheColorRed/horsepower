@@ -11,8 +11,6 @@ namespace hp {
       // Run the component global ticker
       if (!domLoaded) {
         domLoaded = true
-        // document.addEventListener('keydown', e => component['_keyboard'] = new keyboard(e))
-        // document.addEventListener('mousedown', e => component['_mouse'] = new mouse(e))
         document.addEventListener('DOMContentLoaded', () => {
           let componentExists = component.components.find(c => c instanceof comp)
           if (!componentExists) {
@@ -50,7 +48,11 @@ namespace hp {
               component.components.filter(c => c.element == target).forEach(c => {
                 let removed = Array.from(mutation.removedNodes)
                 component.components.filter(comp => removed.indexOf(comp.element) > -1).forEach(comp => {
+                  // Call removed on the component if it exists
                   typeof comp.removed == 'function' && comp.removed()
+                  // Remove the scope from the element if there is one
+                  let idx = component.scopes.findIndex(s => s.element == comp.element)
+                  idx > -1 && component.scopes.splice(idx, 1)
                 })
                 typeof c.childrenRemoved == 'function' && c.childrenRemoved(mutation.removedNodes)
                 typeof c.childrenChanged == 'function' && c.childrenChanged(mutation.removedNodes)
@@ -74,19 +76,4 @@ namespace hp {
       })
     })
   }
-
-  // export function watch<T extends object>(item: T): proxy & T
-  // export function watch<K extends string, V>(key: K, value: V): proxy & Record<K, V>
-  // export function watch(...args: any[]): proxy {
-  //   let prox = new proxy()
-  //   if (args.length == 2) {
-  //     prox[args[0]] = args[1]
-  //   } else if (args.length == 1 && args[0] instanceof Object) {
-  //     for (let itm in args[0]) {
-  //       !(itm in prox) && (prox[itm] = args[0][itm])
-  //     }
-  //   }
-  //   return prox
-  // }
-
 }

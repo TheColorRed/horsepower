@@ -1,8 +1,9 @@
 class model extends hp.input {
   onScopeName(value) {
-    let [first, last] = value.split(' ')
-    this.scope.first = first || ''
-    this.scope.last = last || ''
+    /** @type {string[]} */
+    let name = value.split(' ')
+    this.rootScope.first = name.shift()
+    this.rootScope.last = name.join(' ')
   }
 }
 
