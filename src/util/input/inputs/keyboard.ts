@@ -125,14 +125,14 @@ namespace hp {
     }
 
     /**
-     * Prevents the default from happening if it matches the key, binding or regexp
+     * Checks to see if the key is blocked
      *
      * @param {(...(string | number | RegExp)[])} names
      * @returns
      * @memberof keyboard
      */
-    public block(...names: (string | number | RegExp)[]) {
-      names.length == 0 && this._evt && this._evt.preventDefault()
+    public isBlocked(...names: (string | number | RegExp)[]) {
+      if (names.length == 0) return true
       let keys = names.filter(n => !(n instanceof RegExp) && typeof n == 'string' && n.toLowerCase() === this.key.toLowerCase())
       let bindings = names.filter(n =>
         keyboard.keyboardBindings.find(b =>
@@ -145,16 +145,27 @@ namespace hp {
           )
         )
       )
-      if (keys.length > 0) { this._evt && this._evt.preventDefault() }
-      else if (bindings.length > 0) { this._evt && this._evt.preventDefault() }
+      if (keys.length > 0) { return true }
+      else if (bindings.length > 0) { return true }
       else {
         names.filter(n => n instanceof RegExp).forEach(regex => {
           if (regex instanceof RegExp && regex.test(this.key)) {
-            this._evt && this._evt.preventDefault()
+            return true
           }
         })
       }
-      return true
+      return false
+    }
+
+    /**
+     * Prevents the default from happening if it matches the key, binding or regexp
+     *
+     * @param {(...(string | number | RegExp)[])} names
+     * @returns
+     * @memberof keyboard
+     */
+    public block(...names: (string | number | RegExp)[]) {
+      if (this.isBlocked(...names)) this._evt && this._evt.preventDefault()
     }
 
     /**
@@ -165,6 +176,17 @@ namespace hp {
      * @memberof keyboard
      */
     public allow(...names: (string | number | RegExp)[]) {
+      if (!this.isAllowed(...names)) this._evt && this._evt.preventDefault()
+    }
+
+    /**
+     * Checks to see if the key is allowed
+     *
+     * @param {(...(string | number | RegExp)[])} names
+     * @returns
+     * @memberof keyboard
+     */
+    public isAllowed(...names: (string | number | RegExp)[]) {
       let keys = names.filter(n => typeof n == 'string' && n.toLowerCase() === this.key.toLowerCase())
       let bindings = names.filter(n =>
         // Test string keybindings
@@ -180,7 +202,7 @@ namespace hp {
         )
       )
       let regexps = names.filter(n => n instanceof RegExp && n.test(this.key))
-      if (keys.length == 0 && bindings.length == 0 && regexps.length == 0) this._evt && this._evt.preventDefault()
+      if (keys.length == 0 && bindings.length == 0 && regexps.length == 0) return false
       return true
     }
 

@@ -5,13 +5,13 @@ namespace hp {
   export function observe<T extends element>(selector: string | HTMLElement | Document | Window, ...comps: componentType<T>[]): void {
     comps.forEach(comp => {
       component.observers.push(new observer(comp, selector))
-      if (selector instanceof Document || selector instanceof Window) {
-        component.createNewComponent(selector, comp)
-      }
       // Run the component global ticker
       if (!domLoaded) {
         domLoaded = true
         document.addEventListener('DOMContentLoaded', () => {
+          if (selector instanceof Document || selector instanceof Window) {
+            component.createNewComponent(selector, comp)
+          }
           let componentExists = component.components.find(c => c instanceof comp)
           if (!componentExists) {
             let staticTick = comp.tick(component.components.filter(c => c instanceof comp))
@@ -36,7 +36,10 @@ namespace hp {
               } else if (observer.selector instanceof HTMLElement) {
                 items.push(observer.selector)
               }
-              items.forEach(item => component.createNewComponent(item, observer.component, mutation))
+              items.forEach(item =>
+                component.components.filter(c => c.element == item).length == 0 &&
+                component.createNewComponent(item, observer.component, mutation)
+              )
             })
             if (mutation.addedNodes.length > 0) {
               component.components.filter(c => c.element == target).forEach(c => {

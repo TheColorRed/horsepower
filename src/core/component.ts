@@ -12,8 +12,8 @@ namespace hp {
     removed(): void
     modified(oldValue: any, newValue: any, attr: any, mutation?: MutationRecord): void
     changed(newValue: any, oldValue: any, key: string | string[]): void
-    onScope(value: any, prop: string): void
-    bindingChanged(newValue: any, oldValue: any, prop: string): void
+    onScope(newValue: any, oldValue: any, prop: string): void
+    onBinding(newValue: any, oldValue: any, prop: string): void
     updated(value: any, prop: string): void
     deleted(mutation?: MutationRecord): void
     childrenAdded(children: NodeList): void
@@ -46,7 +46,7 @@ namespace hp {
 
   export abstract class component {
 
-    public readonly parent: component | null
+    public readonly parent: component | null = null
 
     private readonly _node: HTMLElement | Document | Window
     private static _keyboard: keyboard = new keyboard
@@ -88,7 +88,9 @@ namespace hp {
         this.node.addEventListener('mouseup', e => this.stopClickHold())
         this.node.addEventListener('mouseout', e => this.stopClickHold())
       }
-      this.parent = this.closestComponent(element)
+      if (node instanceof HTMLElement) {
+        this.parent = this.closestComponent(element)
+      }
       this.formElementBinding()
     }
 
@@ -100,42 +102,46 @@ namespace hp {
 
     public get rootScope(): { [key: string]: any } {
       if (!component.rootScope) {
-        component.rootScope = component.createScope(document.body)
+        component.rootScope = component.createScope(document)
       }
       return component.rootScope
     }
 
-    public static createScope(element: HTMLElement) {
+    public static createScope(element: HTMLElement | Document) {
       let result: { [key: string]: any } = new Object
       result = new Proxy(result, {
-        set: (target, property, value) => {
+        set: (target, property, newValue) => {
           let prop = property.toString()
+          let oldValue = target[prop]
+          Reflect.set(target, property, newValue)
+          if (oldValue == newValue) return true
           component.components.forEach(c => {
-            if ((c.element == element || element instanceof HTMLBodyElement) && target[prop] !== value) {
-              let functionName = `onScope${hp.snakeToCamel(prop).replace(/^(.)/, v => v.toUpperCase())}`
-              typeof c[functionName] == 'function' && c[functionName](value, prop)
-              typeof c.onScope == 'function' && c.onScope(value, prop)
+            if (c.element == element || element instanceof HTMLBodyElement) {
+              let fname = `onScope${hp.snakeToCamel(prop).replace(/^(.)/, v => v.toUpperCase())}`
+              typeof c[fname] == 'function' && c[fname](newValue, oldValue)
+              typeof c.onScope == 'function' && c.onScope(newValue, oldValue, prop)
             }
           })
           let elements = Array.from(element.querySelectorAll('[hp-bind]'))
-          element.hasAttribute('hp-bind') && elements.push(element)
+          element instanceof HTMLElement && element.hasAttribute('hp-bind') && elements.push(element)
           elements.forEach(el => {
-            let v = el.getAttribute('hp-bind')
-            let oldValue = ''
-            if (v == prop && target[prop] != value) {
+            let attr = el.getAttribute('hp-bind')
+            if (attr == prop) {
               if (component.isFormItem(el)) {
-                oldValue = el.value
-                el.value = value
+                el.value = newValue
               } else {
-                oldValue = el.innerHTML
-                el.innerHTML = value
+                el.innerHTML = newValue
               }
               component.components.forEach(c => {
-                c.element == el && typeof c.bindingChanged == 'function' && c.bindingChanged(value, oldValue, prop)
+                if (c.element == el) {
+                  let fname = `onBinding${hp.snakeToCamel(prop).replace(/^(.)/, v => v.toUpperCase())}`
+                  typeof c[fname] == 'function' && c[fname](newValue, oldValue)
+                  typeof c.onBinding == 'function' && c.onBinding(newValue, oldValue, prop)
+                }
               })
             }
           })
-          return Reflect.set(target, prop, value)
+          return true
         },
         get: (target, prop) => { return Reflect.get(target, prop) }
       })
@@ -199,6 +205,45 @@ namespace hp {
 
     // Overwriteable methods
     static tick(): any { }
+
+    // private _destroy(item: component | HTMLElement) {
+    //   if (item instanceof component) {
+    //     let idx = component.components.indexOf(item)
+    //     idx > -1 && component.components.splice(idx, 1)
+    //     this.removeEmptyComponents()
+    //   } else if (item instanceof HTMLElement) {
+    //     this.destroy(item)
+    //   }
+    // }
+
+    // public destroy(item: component | HTMLElement, delay: number = 0) {
+    //   if (delay > 0) {
+    //     setTimeout(() => this._destroy(item), delay)
+    //   } else {
+    //     this._destroy(item)
+    //   }
+    // }
+
+    public addComponent<T extends element>(comp: componentType<T>): T {
+      return component.createNewComponent(this.element, comp)
+    }
+
+    public removeComponent<T extends element>(comp: componentType<T>) {
+      let idx = component.components.findIndex(c => c.element == this.element && c instanceof comp)
+      idx > -1 && component.components.splice(idx, 1)
+      this.removeEmptyComponents()
+    }
+
+    public removeComponents<T extends element>(comp: componentType<T>) {
+      let items = component.components.filter(c => c.element == this.element && c instanceof comp)
+      let i = items.length
+      while (i) {
+        let item = items[i--]
+        let idx = component.components.indexOf(item)
+        idx > -1 && component.components.splice(idx, 1)
+      }
+      this.removeEmptyComponents()
+    }
 
     /**
      * Gets a specific component attached to the element
@@ -538,25 +583,77 @@ namespace hp {
       }
     }
 
-    public static createNewComponent<T extends element>(element: HTMLElement | Document | Window, comp: componentType<T>, mutation?: MutationRecord): T {
-      let item = this.components.find(c => c.element == element && c instanceof comp)
-      if (!item) {
-        let c = new comp(element)
-        typeof c.created == 'function' && c.created(mutation)
-        c.hasCreated = true
-        let newval: any = null
-        element instanceof HTMLElement && mutation && mutation.attributeName && (newval = element.getAttribute(mutation.attributeName))
-        this.components.filter(comp => comp.element == element).forEach(c =>
-          c.hasCreated && typeof c.modified == 'function' && mutation &&
-          c.modified(mutation.oldValue, newval, mutation.attributeName, mutation)
-        )
-        // Run the individual ticker for the component
-        if (typeof c.tick == 'function') {
-          c.runTick(0)
-        }
-        return c
+    /**
+     * Destroys the current element
+     *
+     * @memberof element
+     */
+    public destroy(): void
+    /**
+     * Destorys the current element after a delay in seconds
+     *
+     * @param {number} delay
+     * @memberof component
+     */
+    public destroy(delay: number): void
+    /**
+     * Destroys a particular element or component
+     *
+     * @param {(HTMLElement | component)} [element]
+     * @memberof element
+     */
+    public destroy(element: HTMLElement | component): void
+    /**
+     * Destroys a particular element or component after a delay in seconds
+     *
+     * @param {(HTMLElement | component)} element
+     * @param {number} delay
+     * @memberof component
+     */
+    public destroy(element: HTMLElement | component, delay: number): void
+    public destroy(...args: any[]): void {
+      let item: HTMLElement | component = this.element
+      let delay: number = 0
+      // Set the element
+      if (args[0] instanceof HTMLElement) item = args[0]
+      else if (args[0] instanceof component) item = args[0]
+      // Set the delay
+      if (typeof args[0] == 'number') delay = args[0]
+      else if (args[1] && typeof args[1] == 'number') delay = args[1]
+      // Finally destroy the item
+      if (delay > 0) {
+        setTimeout(() => this._destroy(item), delay * 1000)
+      } else {
+        this._destroy(item)
       }
-      return item as T
+    }
+
+    private _destroy(item: HTMLElement | component) {
+      if (item instanceof HTMLElement) {
+        item.remove()
+        component.components.forEach((c: any) => c.element == item && (c['_element'] = null))
+      } else if (item instanceof component) {
+        let idx = component.components.indexOf(item)
+        idx > -1 && component.components.splice(idx, 1)
+      }
+      this.removeEmptyComponents()
+    }
+
+    public static createNewComponent<T extends element>(element: HTMLElement | Document | Window, comp: componentType<T>, mutation?: MutationRecord): T {
+      let c = new comp(element)
+      typeof c.created == 'function' && c.created(mutation)
+      c.hasCreated = true
+      let newval: any = null
+      element instanceof HTMLElement && mutation && mutation.attributeName && (newval = element.getAttribute(mutation.attributeName))
+      this.components.filter(comp => comp.element == element).forEach(c =>
+        c.hasCreated && typeof c.modified == 'function' && mutation &&
+        c.modified(mutation.oldValue, newval, mutation.attributeName, mutation)
+      )
+      // Run the individual ticker for the component
+      if (typeof c.tick == 'function') {
+        c.runTick(0)
+      }
+      return c
     }
 
     public startLoop(next: number) {

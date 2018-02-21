@@ -21,6 +21,7 @@
     "author": "",
     "license": "ISC",
     "devDependencies": {
+        "compression": "^1.7.1",
         "express": "^4.16.2",
         "typescript": "^2.8.0-dev.20180211",
         "uglify-es": "^3.3.10",

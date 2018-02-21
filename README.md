@@ -15,7 +15,7 @@ class navLink extends hp.element {
 hp.observe('ul#nav > li > a', navLink)
 ```
 
-Whenever the value of `name` is changed in the scope, `onScopeName` will be called and it will update `first` and `last` in the same scope.
+Whenever the value of `name` is changed in the rootScope, `onScopeName` will be called and it will update `first` and `last` in the same scope.
 
 Anything that is bound to the scope items `name`, `first` and `last` in the dom will be updated when changed.
 
@@ -23,8 +23,8 @@ Anything that is bound to the scope items `name`, `first` and `last` in the dom 
 class model extends hp.input {
   onScopeName(value) {
     let [first, last] = value.split(' ')
-    this.scope.first = first || ''
-    this.scope.last = last || ''
+    this.rootScope.first = first || ''
+    this.rootScope.last = last || ''
   }
 }
 hp.observe('input', model)
@@ -36,6 +36,12 @@ hp.observe('input', model)
 <p>Last Name: <strong hp-bind="last"></strong></p>
 <p>Full Name: <strong hp-bind="name"></strong></p>
 ```
+
+## Scope
+
+All elements with components attached to them have a `scope`. Whenever the scope is changed on that element, all bindings attached to that element and its children elements are affected. `rootScope` will affect the `document` and all of its children.
+
+**Note:** `scope` and `rootScope` are not set until called upon via a `set` or `get`.
 
 ## Components
 

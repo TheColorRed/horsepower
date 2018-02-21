@@ -1,51 +1,55 @@
-const calc = hp.watch({ str: '0' })
-
-let lastCalc = '0'
-function evaluate(val) {
-  val = val ? val : calc.str
-  let r = val.toString().split(/([^\d\.])/).map(v => v.replace(/^0/g, '').replace(/×/g, '*').replace(/÷/g, '/'))
-  try { lastCalc = eval(r.join('')).toString() } catch (e) { }
-  return lastCalc
-}
-
 class output extends hp.element {
-  created() { this.bind(calc) }
-  changed(newVal) {
-    let str = this.toVisual(newVal)
-    str = str.length == 0 ? '0' : str
-    if (this.id == 'result') this.textContent(str == '0' ? '0' : evaluate(newVal))
-    else this.textContent(str)
+  created() {
+    this.rootScope.problem = '0'
+    this.lastCalc
   }
-  toVisual(val) {
-    let r = val.toString().split(/([^\d\.])/g).map(v => v.replace(/^0(\d)/g, '$1').replace(/\*/g, '×').replace(/\//g, '÷'))
-    return r.join('')
+  onBindingProblem(newVal) {
+    this.rootScope.problem = newVal.split(/([^\d\.])/g)
+      .map(v => v.replace(/^0(\d)/g, '$1').replace(/\*/g, '×').replace(/\//g, '÷')).join('')
+      .replace(/((×|\+|-|÷)(×|\+|-|÷))+/g, '$2')
+    if (!this.rootScope.problem) this.rootScope.problem = '0'
+    this.evaluate()
+  }
+  deleteLast() {
+    this.rootScope.problem = this.rootScope.problem.substr(0, this.rootScope.problem.length - 1)
+  }
+  evaluate() {
+    let val = this.rootScope.problem
+    let r = val.toString().split(/([^\d\.])/).map(v => v.replace(/^0/g, '').replace(/×/g, '*').replace(/÷/g, '/'))
+    try { this.rootScope.result = eval(r.join('')).toString() } catch (e) { }
+  }
+  apply() {
+    this.evaluate()
+    this.rootScope.problem = this.rootScope.result
+    this.rootScope.result = '0'
   }
 }
 
-class input extends hp.button {
+class button extends hp.button {
   clicked() {
     let val = this.value()
-    if (val == 'DEL') calc.str = calc.str.substr(0, calc.str.length - 1)
-    else if (val == '=') calc.str = evaluate()
-    else if (val == '.' && calc.str.indexOf('.') == -1) calc.str += val
-    else if (/^(\d|÷|×|-|\+)+$/.test(val)) calc.str += val
+    if (val == 'DEL') this.broadcastTo(output, 'deleteLast')
+    else if (val == '=') this.broadcastTo(output, 'apply')
+    else if (val == '.' && this.rootScope.problem.indexOf('.') == -1) this.rootScope.problem += val
+    else if (/^(\d|÷|×|\-|\+)+$/.test(val)) this.rootScope.problem += val
   }
   heldDown() {
-    calc.str = this.value() == 'DEL' ? '0' : calc.str
+    this.rootScope.problem = this.value() == 'DEL' ? '0' : this.rootScope.problem
   }
 }
 
 class body extends hp.element {
-  keyup(val) {
-    if (val == '.' && calc.str.indexOf('.') == -1) calc.str += val
-    else if (/^(\d|\/|\*|-|\+)+$/.test(val)) calc.str += val
+  keyup(keyboard) {
+    if (keyboard.isAllowed(/\d|\/|\*|-|\+/, '.', 'backspace')) {
+      if (keyboard.key == 'backspace') this.broadcastTo(output, 'deleteLast')
+      else this.rootScope.problem += keyboard.key
+    }
   }
-  keydown(val, code) {
-    if (code == 13) calc.str = evaluate()
-    else if (code == 8) calc.str = calc.str.substr(0, calc.str.length - 1)
+  keydown(keyboard) {
+    keyboard.isAllowed('accept') && this.broadcastTo(output, 'apply')
   }
 }
 
 hp.observe(document, body)
-hp.observe('output', output)
-hp.observe('input[type=button]', input)
+hp.observe('output#problem', output)
+hp.observe('input[type=button]', button)

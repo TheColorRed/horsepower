@@ -1,11 +1,11 @@
 const express = require('express')
 const path = require('path')
 const fs = require('fs')
+const compress = require('compression')
 
 const app = express()
 
-// app.use(express.static(path.join(__dirname, 'html')))
-// app.use(express.static(path.join(__dirname, 'public')))
+app.use(compress())
 app.use('/horsepower', express.static(path.join(__dirname, '../lib')))
 app.use('/test', express.static(path.join(__dirname, './app/tests')))
 app.use('/app', express.static(path.join(__dirname, './app')))

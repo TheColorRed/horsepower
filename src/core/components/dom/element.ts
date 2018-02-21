@@ -350,7 +350,7 @@ namespace hp {
     public removeFirst(amountToRemove = 1) {
       for (let i = 0; i < amountToRemove; i++) {
         let element = this.element.children.item(0) as HTMLElement
-        element && this.removeElement(element)
+        element && this.destroy(element)
       }
     }
 
@@ -362,7 +362,7 @@ namespace hp {
      */
     public removeAt(index: number) {
       let element = this.element.children.item(index) as HTMLElement
-      element && this.removeElement(element)
+      element && this.destroy(element)
     }
 
     /**
@@ -374,30 +374,8 @@ namespace hp {
     public removeLast(amountToRemove = 1) {
       for (let i = 0; i < amountToRemove; i++) {
         let element = this.element.children.item(this.element.children.length - 1) as HTMLElement
-        element && this.removeElement(element)
+        element && this.destroy(element)
       }
-    }
-
-    /**
-     * Removes the current element
-     *
-     * @memberof element
-     */
-    public removeElement(): void
-    /**
-     * Removes a particular element
-     *
-     * @param {(HTMLElement | component)} [element]
-     * @memberof element
-     */
-    public removeElement(element?: HTMLElement | component): void
-    public removeElement(element?: HTMLElement | component): void {
-      let el: HTMLElement
-      if (!element) { el = this.element }
-      else { el = element instanceof HTMLElement ? element : element.element }
-      el && el.remove()
-      el && component.components.forEach((c: any) => c.element == el && (c['_element'] = null))
-      this.removeEmptyComponents()
     }
 
     /**
