@@ -1,69 +1,62 @@
 namespace hp {
-
-  export interface proxy {
-    [key: string]: any
-  }
-
   export class proxy {
 
-    private boundValues: { [key: string]: any } = {}
-    private boundTo: component[] = []
+    public static createScope(element: HTMLElement | Document) {
+      return this.proxyify(element, new Object)
+    }
 
-    public constructor() {
-      let $this = this
-      return new Proxy(this, {
-        set(obj, prop, val) {
-          $this.boundTo.forEach(itm => {
-            if (typeof itm.changed == 'function') {
-              let propval = prop.valueOf()
-              if ((Array.isArray(propval) && propval.indexOf('length') == -1) || !Array.isArray(obj)) {
-                let oldVal = $this.boundValues[prop]
-                if (oldVal != val) {
-                  itm.changed(val, oldVal, prop.valueOf() as any)
-                }
-              }
+    private static proxyify(element: HTMLElement | Document, scope: any, propname?: string) {
+      scope = new Proxy(scope, {
+        set: (target, property, value) => {
+          let prop = property.toString()
+          let oldValue = target[prop]
+          if (Array.isArray(value)) {
+            value = this.proxyify(element, value, prop)
+          }
+          Reflect.set(target, property, value)
+          // console.log(target, property, oldValue, value)
+          if (oldValue == value) return true
+          let newValue = Array.isArray(target) ? target : value
+          this.sendScopeEvents(element, propname || prop, newValue, oldValue)
+          this.sendBindEvents(element, propname || prop, newValue, oldValue)
+          return true
+        },
+        get: (target, prop) => { return Reflect.get(target, prop) }
+      })
+      component.scopes.push({ element, scope })
+      return scope
+    }
+
+    private static sendScopeEvents(element: HTMLElement | Document, prop: string, newValue: any, oldValue: any) {
+      component.components.forEach(c => {
+        if (c.element == element || element instanceof Document) {
+          let fname = `onScope${hp.snakeToCamel(prop).replace(/^(.)/, v => v.toUpperCase())}`
+          typeof c[fname] == 'function' && c[fname](newValue, oldValue)
+          typeof c.onScope == 'function' && c.onScope(newValue, oldValue, prop)
+        }
+      })
+    }
+
+    private static sendBindEvents(element: HTMLElement | Document, prop: string, newValue: any, oldValue: any) {
+      let elements = Array.from(element.querySelectorAll('[hp-bind]'))
+      element instanceof HTMLElement && element.hasAttribute('hp-bind') && elements.push(element)
+      elements.forEach(el => {
+        let attr = el.getAttribute('hp-bind')
+        if (attr == prop) {
+          if (component.isFormItem(el)) {
+            el.value = newValue
+          } else {
+            el.innerHTML = newValue
+          }
+          component.components.forEach(c => {
+            if (c.element == el) {
+              let fname = `onBinding${hp.snakeToCamel(prop).replace(/^(.)/, v => v.toUpperCase())}`
+              typeof c[fname] == 'function' && c[fname](newValue, oldValue)
+              typeof c.onBinding == 'function' && c.onBinding(newValue, oldValue, prop)
             }
           })
-          return Reflect.set($this.boundValues, prop, val)
-        },
-        get(obj, prop, val) {
-          if ($this[prop.toString()]) {
-            return $this[prop]
-          }
-          return Reflect.get($this.boundValues, prop)
         }
       })
     }
-
-    public bind<T extends component>(...comp: T[]) {
-      comp.forEach(c => {
-        this.boundTo.indexOf(c) == -1 && this.boundTo.push(...comp)
-      })
-      return this
-    }
-
-    public unbind<T extends component>(...comp: T[]) {
-      comp.forEach(c => {
-        let idx = this.boundTo.indexOf(c)
-        idx > -1 && this.boundTo.splice(idx, 1)
-      })
-      return this
-    }
-
-    public watch(...args: any[]): any {
-      args.forEach(item => {
-        if (item instanceof proxy) {
-          this.proxies.push(item)
-        }
-      })
-      // if (args.length == 2) {
-      //   this.boundValues[args[0]] = args[1]
-      // } else if (args.length == 1 && args[0] instanceof Object) {
-      //   for (let itm in args[0]) {
-      //     !(itm in this.boundValues) && (this.boundValues[itm] = args[0][itm])
-      //   }
-      // }
-    }
-
   }
 }

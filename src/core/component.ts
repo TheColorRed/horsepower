@@ -97,56 +97,14 @@ namespace hp {
     public get scope(): { [key: string]: any } {
       let scope = component.scopes.find(s => s.element == this.element)
       if (scope) return scope.scope
-      return component.createScope(this.element)
+      return proxy.createScope(this.element)
     }
 
     public get rootScope(): { [key: string]: any } {
       if (!component.rootScope) {
-        component.rootScope = component.createScope(document)
+        component.rootScope = proxy.createScope(document)
       }
       return component.rootScope
-    }
-
-    public static createScope(element: HTMLElement | Document) {
-      let result: { [key: string]: any } = new Object
-      result = new Proxy(result, {
-        set: (target, property, newValue) => {
-          let prop = property.toString()
-          let oldValue = target[prop]
-          Reflect.set(target, property, newValue)
-          if (oldValue == newValue) return true
-          component.components.forEach(c => {
-            if (c.element == element || element instanceof Document) {
-              let fname = `onScope${hp.snakeToCamel(prop).replace(/^(.)/, v => v.toUpperCase())}`
-              typeof c[fname] == 'function' && c[fname](newValue, oldValue)
-              typeof c.onScope == 'function' && c.onScope(newValue, oldValue, prop)
-            }
-          })
-          let elements = Array.from(element.querySelectorAll('[hp-bind]'))
-          element instanceof HTMLElement && element.hasAttribute('hp-bind') && elements.push(element)
-          elements.forEach(el => {
-            let attr = el.getAttribute('hp-bind')
-            if (attr == prop) {
-              if (component.isFormItem(el)) {
-                el.value = newValue
-              } else {
-                el.innerHTML = newValue
-              }
-              component.components.forEach(c => {
-                if (c.element == el) {
-                  let fname = `onBinding${hp.snakeToCamel(prop).replace(/^(.)/, v => v.toUpperCase())}`
-                  typeof c[fname] == 'function' && c[fname](newValue, oldValue)
-                  typeof c.onBinding == 'function' && c.onBinding(newValue, oldValue, prop)
-                }
-              })
-            }
-          })
-          return true
-        },
-        get: (target, prop) => { return Reflect.get(target, prop) }
-      })
-      component.scopes.push({ element: element, scope: result })
-      return result
     }
 
     private onKeyDown(e: KeyboardEvent) {
@@ -500,6 +458,19 @@ namespace hp {
       let comps = component.components.filter(c => c instanceof comp && items.indexOf(c.element) > -1) as T[]
       typeof callback == 'function' && comps.forEach(c => callback(c))
       return comps
+    }
+
+    public siblingElement<T extends element>(selector: string, callback?: (item: T) => void): T | null {
+      let parent = this.element.parentElement
+      if (!parent) return null
+      let sibling = parent.querySelector(':scope > ' + selector) as HTMLElement
+      if (!sibling) return null
+      let comp = component.components.find(c => c.element == sibling) as T
+      if (!comp) {
+        comp = component.createNewComponent(sibling, element) as T
+      }
+      typeof callback == 'function' && callback(comp)
+      return comp
     }
 
     /**

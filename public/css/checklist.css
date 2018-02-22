@@ -1,0 +1,13 @@
+#checklist {
+  list-style-type: none;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+#checklist > li input {
+  display: none;
+}
+
+#checklist > li.completed span {
+  text-decoration: line-through;
+}
