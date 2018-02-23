@@ -6,11 +6,6 @@ namespace hp {
     public get id(): string { return this.element.id }
     public set id(value: string) { this.element.id = value }
 
-    public get width(): number { return this.element.clientWidth }
-    public get scrollWidth(): number { return this.element.scrollWidth }
-    public get height(): number { return this.element.clientHeight }
-    public get scrollHeight(): number { return this.element.scrollHeight }
-
     public get text(): string {
       return this.element.textContent || ''
     }

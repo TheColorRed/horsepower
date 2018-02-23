@@ -1,5 +1,9 @@
 namespace hp {
 
+  interface mutationElement<T extends element> {
+    element: HTMLElement, component: componentType<T>
+  }
+
   let domLoaded: boolean = false
 
   export const rootScope = component.rootScope
@@ -28,34 +32,23 @@ namespace hp {
       if (component.observer) return
       // If the mutation observer has not been created create one
       component.observer = new MutationObserver(mutationList => {
+        let creatableElements: mutationElement<T>[] = []
         mutationList.forEach(mutation => {
           let target = mutation.target as HTMLElement
           if (mutation.type == 'childList') {
             if (mutation.addedNodes.length > 0) {
-              // console.log(mutation.addedNodes)
-              component.components.filter(c => c.element == target).forEach(c => {
-                typeof c.childrenAdded == 'function' && c.childrenAdded(mutation.addedNodes)
-                typeof c.childrenChanged == 'function' && c.childrenChanged(mutation.addedNodes)
-              })
-              component.observers.forEach(observer => {
-                mutation.addedNodes.forEach(node => {
-                  if (node.nodeType == 1) {
-                    let items: HTMLElement[] = []
-                    if (typeof observer.selector == 'string') {
-                      items = Array.from(document.querySelectorAll<HTMLElement>(observer.selector))
-                    } else if (observer.selector instanceof HTMLElement) {
-                      items.push(observer.selector)
+              mutation.addedNodes.forEach(node => {
+                if (node.nodeType == 1) {
+                  component.observers.forEach(o => {
+                    if (typeof o.selector == 'string') {
+                      let elements = <HTMLElement[]>Array.from(document.querySelectorAll(o.selector))
+                      elements.forEach(e => creatableElements.findIndex(i => i.element == e) == -1 && creatableElements.push({ element: e, component: o.component }))
+                    } else if (o.selector instanceof HTMLElement) {
+                      creatableElements.push({ element: o.selector, component: o.component })
                     }
-                    items.forEach(item => {
-                      // TODO: Figure out what is causing this to be slow
-                      if (!component.components.find(c => c.element == item)) {
-                        component.createNewComponent(item, observer.component, mutation)
-                      }
-                    })
-                  }
-                })
+                  })
+                }
               })
-
             }
             if (mutation.removedNodes.length > 0) {
               component.components.filter(c => c.element == target).forEach(c => {
@@ -83,6 +76,14 @@ namespace hp {
               }
             })
           }
+        })
+        let toCreate = creatableElements.reduce<mutationElement<T>[]>((nodes, n) =>
+          nodes.findIndex(i => i.element == n.element) == -1 &&
+            !component.components.find(c => c.element == n.element)
+            ? nodes.concat(n) : nodes, [])
+        toCreate.forEach(item => {
+          component.createNewComponent(item.element, transform)
+          component.createNewComponent(item.element, item.component)
         })
       })
       component.observer.observe(document, {

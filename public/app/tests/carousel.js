@@ -22,9 +22,9 @@ class carouselItem extends hp.element {
   // See: 'keyboardControls' and 'carouselNextPrev' for implementation
   translate(direction) {
     // If next is called move the div to the left (subtracting pixels from the position)
-    this.offset -= direction == 'next' && Math.abs(this.offset) + this.width < this.scrollWidth ? this.width : 0
+    this.offset -= direction == 'next' && Math.abs(this.offset) + this.transform.width < this.transform.scrollWidth ? this.transform.width : 0
     // If prev is called move the div to the right (adding pixels to the position)
-    this.offset += direction == 'prev' && this.offset < 0 ? this.width : 0
+    this.offset += direction == 'prev' && this.offset < 0 ? this.transform.width : 0
     // Set the new position and let the css take care of the animation
     this.css('transform', `translateX(${this.offset}px)`)
   }

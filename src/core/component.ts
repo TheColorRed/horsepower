@@ -47,6 +47,7 @@ namespace hp {
   export abstract class component {
 
     public readonly parent: component | null = null
+    public readonly transform: transform
 
     private readonly _node: HTMLElement | Document | Window
     private static _keyboard: keyboard = new keyboard
@@ -58,11 +59,10 @@ namespace hp {
     public get mouse(): mouse { return component._mouse }
     public get node(): HTMLElement | Document | Window { return this._node }
     public get element(): HTMLElement {
-      let el: HTMLElement
-      if (this._node instanceof Window) el = this._node.document.body
-      else if (this._node instanceof Document) el = this._node.body
-      else el = this._node
-      return el
+      if (this._node instanceof HTMLElement) return this._node
+      if (this._node instanceof Window) return this._node.document.body
+      if (this._node instanceof Document) return this._node.body
+      return this._node
     }
 
     public static observer: MutationObserver
@@ -91,6 +91,7 @@ namespace hp {
       if (node instanceof HTMLElement) {
         this.parent = this.closestComponent(element)
       }
+      this.transform = (this.getComponent(transform) || this) as transform
       this.formElementBinding()
     }
 
@@ -194,6 +195,11 @@ namespace hp {
 
     public addComponent<T extends element>(comp: componentType<T>): T {
       return component.createNewComponent(this.element, comp)
+    }
+
+    public getComponent<T extends element>(comp: componentType<T>): T | null {
+      let c = component.components.find(c => c.element == this.element && c instanceof comp) as T
+      return c || null
     }
 
     public removeComponent<T extends element>(comp: componentType<T>) {
@@ -558,7 +564,7 @@ namespace hp {
       let i = component.components.length
       while (i--) {
         let comp = component.components[i]
-        if (!comp.element) {
+        if (!comp['_node']) {
           component.components.splice(i, 1)
         }
       }
@@ -623,12 +629,12 @@ namespace hp {
         Array.from(item.querySelectorAll('*')).forEach(el => {
           component.components.forEach((c: any) => {
             el.remove()
-            c.element == el && (c['_element'] = null)
+            c.element == el && (c['_node'] = null)
           })
         })
         // Detach elements from the components in the current item
         item.remove()
-        component.components.forEach((c: any) => c.element == item && (c['_element'] = null))
+        component.components.forEach((c: any) => c.element == item && (c['_node'] = null))
       } else if (item instanceof component) {
         let idx = component.components.indexOf(item)
         idx > -1 && component.components.splice(idx, 1)

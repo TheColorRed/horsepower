@@ -15,7 +15,8 @@ namespace hp {
             value = this.proxyify(element, value, prop)
             // return Reflect.set(target, property, value)
           }
-          Reflect.set(target, property, value)
+          target[prop] = value
+          // Reflect.set(target, property, value)
           // console.log('set')
           // console.log(target, property, oldValue, value)
           if (oldValue == value) return true
@@ -27,7 +28,8 @@ namespace hp {
         },
         get: (target, prop) => {
           // console.log('get')
-          return Reflect.get(target, prop)
+          return target[prop]
+          // return Reflect.get(target, prop)
         }
       })
       component.scopes.push({ element, scope })
@@ -45,7 +47,7 @@ namespace hp {
     }
 
     private static sendBindEvents(element: HTMLElement | Document, prop: string, newValue: any, oldValue: any) {
-      let elements = Array.from<HTMLElement>(element.querySelectorAll('*')).filter(el => {
+      let elements = Array.from(<NodeListOf<HTMLElement>>element.getElementsByTagName('*')).filter(el => {
         if (el.hasAttribute('hp-bind')) return true
         else {
           let attrs = Array.from(el.attributes)
