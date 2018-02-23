@@ -1,4 +1,5 @@
 namespace hp {
+
   export class proxy {
 
     public static createScope(element: HTMLElement | Document) {
@@ -12,16 +13,22 @@ namespace hp {
           let oldValue = target[prop]
           if (Array.isArray(value)) {
             value = this.proxyify(element, value, prop)
+            // return Reflect.set(target, property, value)
           }
           Reflect.set(target, property, value)
+          // console.log('set')
           // console.log(target, property, oldValue, value)
           if (oldValue == value) return true
           let newValue = Array.isArray(target) ? target : value
           this.sendScopeEvents(element, propname || prop, newValue, oldValue)
           this.sendBindEvents(element, propname || prop, newValue, oldValue)
+          this.sendForEvents(element, propname || prop, newValue, oldValue)
           return true
         },
-        get: (target, prop) => { return Reflect.get(target, prop) }
+        get: (target, prop) => {
+          // console.log('get')
+          return Reflect.get(target, prop)
+        }
       })
       component.scopes.push({ element, scope })
       return scope
@@ -38,15 +45,28 @@ namespace hp {
     }
 
     private static sendBindEvents(element: HTMLElement | Document, prop: string, newValue: any, oldValue: any) {
-      let elements = Array.from(element.querySelectorAll('[hp-bind]'))
+      let elements = Array.from<HTMLElement>(element.querySelectorAll('*')).filter(el => {
+        if (el.hasAttribute('hp-bind')) return true
+        else {
+          let attrs = Array.from(el.attributes)
+          for (let i = 0; i < attrs.length; i++) {
+            if (attrs[i].value.match(`{{.*?${prop}.*?}}`)) { return true }
+          }
+          return false
+        }
+      })
       element instanceof HTMLElement && element.hasAttribute('hp-bind') && elements.push(element)
       elements.forEach(el => {
         let attr = el.getAttribute('hp-bind')
-        if (attr == prop) {
-          if (component.isFormItem(el)) {
-            el.value = newValue
-          } else {
-            el.innerHTML = newValue
+        let hasInlineBindings = this.hasInlineBindings(el, prop)
+        if (attr == prop || hasInlineBindings) {
+          hasInlineBindings && this.replaceInlineBindings(el, prop, newValue)
+          if (attr == prop) {
+            if (component.isFormItem(el)) {
+              el.value = newValue
+            } else {
+              el.innerHTML = newValue
+            }
           }
           component.components.forEach(c => {
             if (c.element == el) {
@@ -57,6 +77,65 @@ namespace hp {
           })
         }
       })
+    }
+
+    private static sendForEvents(element: HTMLElement | Document, prop: string, newValue: any, oldValue: any) {
+      if (Array.isArray(newValue)) {
+        let templs = template.templates.filter(t => t.element.hasAttribute('hp-for'))
+        templs.forEach(templ => {
+          if (templ.element.hasAttribute('hp-for')) {
+            let elfor = templ.element.getAttribute('hp-for') || ''
+            let [value, source] = elfor.split('in').map(i => i.trim())
+            let [arg1, arg2] = value.split(',')
+            let key = arg1 && arg2 ? arg1 : null
+            let val = arg1 && !arg2 ? arg1 : arg2
+            if (Array.isArray(newValue) && source == prop) {
+              Array.from(templ.parent.children).forEach(child => component.destory(child as HTMLElement))
+              newValue.forEach(itmValue => {
+                let newElement = templ.element.cloneNode(true) as HTMLElement
+                newElement.removeAttribute('hp-for')
+                this.sendBindEvents(newElement, key || val, itmValue, null)
+                templ.parent.appendChild(newElement)
+              })
+            }
+          }
+        })
+      }
+    }
+
+    private static replaceInlineBindings(element: HTMLElement, prop: string, newValue: string) {
+      let elements: HTMLElement[] = Array.from(element.querySelectorAll('*'))
+      elements.push(element)
+      for (let e = 0; e < elements.length; e++) {
+        let el = elements[e]
+        let attrs = el.attributes
+        // Test the attributes
+        for (let i = 0; i < attrs.length; i++) {
+          attrs[i].value = attrs[i].value.replace(new RegExp(`{{.*?${prop}.*?}}`, 'g'), newValue)
+        }
+        // Test the text content
+        el.innerHTML = el.innerHTML.replace(new RegExp(`{{.*?${prop}.*?}}`, 'g'), newValue)
+      }
+    }
+
+    private static hasInlineBindings(element: HTMLElement, prop: string) {
+      let elements: HTMLElement[] = Array.from(element.querySelectorAll('*'))
+      elements.push(element)
+      for (let e = 0; e < elements.length; e++) {
+        let el = elements[e]
+        let attrs = el.attributes
+        // Test the attributes
+        for (let i = 0; i < attrs.length; i++) {
+          if (new RegExp(`{{.*?${prop}.*?}}`, 'g').test(attrs[i].value)) {
+            return true
+          }
+        }
+        // Test the text content
+        if (new RegExp(`{{.*?${prop}.*?}}`, 'g').test(el.innerText)) {
+          return true
+        }
+      }
+      return false
     }
   }
 }

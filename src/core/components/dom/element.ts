@@ -11,6 +11,10 @@ namespace hp {
     public get height(): number { return this.element.clientHeight }
     public get scrollHeight(): number { return this.element.scrollHeight }
 
+    public get text(): string {
+      return this.element.textContent || ''
+    }
+
     public constructor(node?: HTMLElement | Document | Window) {
       super(node)
     }
@@ -66,15 +70,31 @@ namespace hp {
     }
 
     /**
-     * Sets the attributes content
+     * Sets the elements text content
      *
      * @param {*} value
      * @returns
      * @memberof element
      */
     public textContent(value: any) {
-      this.element.textContent = value
+      this.element.textContent = value.toString()
       return this
+    }
+
+    /**
+     * Sets the elements html content
+     *
+     * @param {*} value
+     * @memberof element
+     */
+    public html(value: any) {
+      if (value instanceof HTMLElement) {
+        this.element.innerHTML = value.outerHTML
+      } else if (typeof value == 'string') {
+        this.element.innerHTML = value
+      } else {
+        this.element.innerHTML = value.toString()
+      }
     }
 
     /**

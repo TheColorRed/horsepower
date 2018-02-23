@@ -1,8 +1,8 @@
 class nav extends hp.element {
   created() {
-    hp.ajax.get('/nav')
+    this.ajax.get('/nav')
   }
-  ajax(response) {
+  ajaxResponse(response) {
     Array.isArray(response) && response.forEach(item => {
       this.appendElement(`li${item.active ? '.active' : ''}`, `<a href="${item.file}">${item.name}</a>`)
       item.active && this.findElement('iframe', iframe => iframe.setAttribute('src', item.file))

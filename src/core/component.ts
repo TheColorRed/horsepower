@@ -7,7 +7,7 @@ namespace hp {
   }
 
   export interface component {
-    ajax(data: any): void
+    ajaxResponse(data: any): void
     created(mutation?: MutationRecord): void
     removed(): void
     modified(oldValue: any, newValue: any, attr: any, mutation?: MutationRecord): void
@@ -68,7 +68,7 @@ namespace hp {
     public static observer: MutationObserver
     public static observers: observer<any>[] = []
     public static components: component[] = []
-    public static rootScope: { [key: string]: any }
+    private static _rootScope: { [key: string]: any }
     public static scopes: scope[] = []
 
     public hasCreated: boolean = false
@@ -94,17 +94,45 @@ namespace hp {
       this.formElementBinding()
     }
 
+    public get ajax() {
+      return {
+        get: async (url: string, data?: { [key: string]: any } | FormData, headers?: { [key: string]: any } | Headers) => {
+          let response = await hp.ajax.get(url, data, headers)
+          component.components.forEach(comp => comp.element == this.element && typeof comp.ajaxResponse == 'function' && comp.ajaxResponse(response))
+          return response
+        },
+        post: async (url: string, data?: { [key: string]: any } | FormData, headers?: { [key: string]: any } | Headers) => {
+          let response = await hp.ajax.post(url, data, headers)
+          component.components.forEach(comp => comp.element == this.element && typeof comp.ajaxResponse == 'function' && comp.ajaxResponse(response))
+          return response
+        }
+      }
+    }
+
     public get scope(): { [key: string]: any } {
       let scope = component.scopes.find(s => s.element == this.element)
       if (scope) return scope.scope
       return proxy.createScope(this.element)
     }
 
+    public get parentScope(): { [key: string]: any } {
+      let c = component.components.find(c => this.parent && c.element == this.parent.element ? true : false)
+      if (c && c.scope) return c.scope
+      return this.rootScope
+    }
+
     public get rootScope(): { [key: string]: any } {
-      if (!component.rootScope) {
-        component.rootScope = proxy.createScope(document)
+      if (!component._rootScope) {
+        component._rootScope = proxy.createScope(document)
       }
-      return component.rootScope
+      return component._rootScope
+    }
+
+    public static get rootScope(): { [key: string]: any } {
+      if (!component._rootScope) {
+        component._rootScope = proxy.createScope(document)
+      }
+      return component._rootScope
     }
 
     private onKeyDown(e: KeyboardEvent) {
@@ -164,24 +192,6 @@ namespace hp {
     // Overwriteable methods
     static tick(): any { }
 
-    // private _destroy(item: component | HTMLElement) {
-    //   if (item instanceof component) {
-    //     let idx = component.components.indexOf(item)
-    //     idx > -1 && component.components.splice(idx, 1)
-    //     this.removeEmptyComponents()
-    //   } else if (item instanceof HTMLElement) {
-    //     this.destroy(item)
-    //   }
-    // }
-
-    // public destroy(item: component | HTMLElement, delay: number = 0) {
-    //   if (delay > 0) {
-    //     setTimeout(() => this._destroy(item), delay)
-    //   } else {
-    //     this._destroy(item)
-    //   }
-    // }
-
     public addComponent<T extends element>(comp: componentType<T>): T {
       return component.createNewComponent(this.element, comp)
     }
@@ -189,7 +199,7 @@ namespace hp {
     public removeComponent<T extends element>(comp: componentType<T>) {
       let idx = component.components.findIndex(c => c.element == this.element && c instanceof comp)
       idx > -1 && component.components.splice(idx, 1)
-      this.removeEmptyComponents()
+      component.removeEmptyComponents()
     }
 
     public removeComponents<T extends element>(comp: componentType<T>) {
@@ -200,7 +210,7 @@ namespace hp {
         let idx = component.components.indexOf(item)
         idx > -1 && component.components.splice(idx, 1)
       }
-      this.removeEmptyComponents()
+      component.removeEmptyComponents()
     }
 
     /**
@@ -544,7 +554,7 @@ namespace hp {
      * @private
      * @memberof element
      */
-    protected removeEmptyComponents() {
+    public static removeEmptyComponents() {
       let i = component.components.length
       while (i--) {
         let comp = component.components[i]
@@ -570,18 +580,18 @@ namespace hp {
     /**
      * Destroys a particular element or component
      *
-     * @param {(HTMLElement | component)} [element]
+     * @param {(HTMLElement | component)} [item]
      * @memberof element
      */
-    public destroy(element: HTMLElement | component): void
+    public destroy(item: HTMLElement | component): void
     /**
      * Destroys a particular element or component after a delay in seconds
      *
-     * @param {(HTMLElement | component)} element
+     * @param {(HTMLElement | component)} item
      * @param {number} delay
      * @memberof component
      */
-    public destroy(element: HTMLElement | component, delay: number): void
+    public destroy(item: HTMLElement | component, delay: number): void
     public destroy(...args: any[]): void {
       let item: HTMLElement | component = this.element
       let delay: number = 0
@@ -593,21 +603,38 @@ namespace hp {
       else if (args[1] && typeof args[1] == 'number') delay = args[1]
       // Finally destroy the item
       if (delay > 0) {
-        setTimeout(() => this._destroy(item), delay * 1000)
+        setTimeout(() => component._destroy(item), delay * 1000)
       } else {
-        this._destroy(item)
+        component._destroy(item)
       }
     }
 
-    private _destroy(item: HTMLElement | component) {
+    public static destory(item: HTMLElement | component, delay: number = 0) {
+      if (delay > 0) {
+        setTimeout(() => component._destroy(item), delay * 1000)
+      } else {
+        component._destroy(item)
+      }
+    }
+
+    private static _destroy(item: HTMLElement | component) {
       if (item instanceof HTMLElement) {
+        // Detatch elements from the components in the children
+        Array.from(item.querySelectorAll('*')).forEach(el => {
+          component.components.forEach((c: any) => {
+            el.remove()
+            c.element == el && (c['_element'] = null)
+          })
+        })
+        // Detach elements from the components in the current item
         item.remove()
         component.components.forEach((c: any) => c.element == item && (c['_element'] = null))
       } else if (item instanceof component) {
         let idx = component.components.indexOf(item)
         idx > -1 && component.components.splice(idx, 1)
       }
-      this.removeEmptyComponents()
+      // Remove all components that don't have an element associated with them
+      component.removeEmptyComponents()
     }
 
     public static createNewComponent<T extends element>(element: HTMLElement | Document | Window, comp: componentType<T>, mutation?: MutationRecord): T {

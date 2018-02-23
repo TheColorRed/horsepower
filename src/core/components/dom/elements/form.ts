@@ -18,8 +18,8 @@ namespace hp {
     private async onSubmit(e: MouseEvent) {
       e.preventDefault()
       let response = await this.submit()
-      if (typeof this.ajax == 'function') {
-        this.ajax(response)
+      if (typeof this.ajaxResponse == 'function') {
+        this.ajaxResponse(response)
       }
     }
 

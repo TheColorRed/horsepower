@@ -4,12 +4,14 @@ namespace hp {
     input(value: keyboard): void
     acceptKey: number | number[]
     rejectKey: number | number[]
+    inputDelay(value: keyboard): void
   }
 
-  export abstract class input extends form {
+  export abstract class input extends formItem {
 
     private _lastValue: string = ''
     private _currentValue: string = ''
+    private _typetimeout: number = 0
 
     protected get lastValue(): string { return this._lastValue }
     protected get currentValue(): string { return this._currentValue }
@@ -18,6 +20,14 @@ namespace hp {
       super(element)
       this.node.addEventListener('keydown', this.onInputKeyDown.bind(this))
       this.node.addEventListener('input', this.onInput.bind(this))
+      if (typeof this.inputDelay == 'function') {
+        this.element.addEventListener('keyup', this.startInputDelay.bind(this))
+      }
+    }
+
+    private startInputDelay(e: KeyboardEvent) {
+      clearTimeout(this._typetimeout)
+      this._typetimeout = setTimeout(() => this.inputDelay(new keyboard(e)), 300)
     }
 
     private onInput(e: KeyboardEvent) {

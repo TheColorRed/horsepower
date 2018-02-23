@@ -25,7 +25,8 @@ app.all(/\/ajax\/.*/, (req, res) => {
 app.get('/nav', (req, res) => {
   res.json([
     { name: 'Ajax', file: '/html/ajax.html' },
-    { name: 'Binding', file: '/html/bind.html', active: true },
+    { name: 'Binding', file: '/html/bind.html' },
+    { name: 'Search', file: '/html/search.html', active: true },
     { name: 'Blockchain Websocket', file: '/html/blockchain.html' },
     { name: 'Calculator', file: '/html/calculator.html' },
     { name: 'Carousel', file: '/html/carousel.html' },
@@ -36,6 +37,10 @@ app.get('/nav', (req, res) => {
     { name: 'Stopwatch', file: '/html/stopwatch.html' },
     { name: 'Shopping Cart', file: '/html/shoppingcart.html' }
   ])
+})
+
+app.get('/dogs', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dogs.json'))
 })
 
 app.get('/', (req, res) => {

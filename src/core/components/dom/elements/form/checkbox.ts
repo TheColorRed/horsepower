@@ -4,7 +4,7 @@ namespace hp {
     check(checked: boolean): void
   }
 
-  export abstract class checkbox extends form {
+  export abstract class checkbox extends formItem {
     public get checked(): boolean {
       if (this.element instanceof HTMLInputElement && this.element.getAttribute('type') == 'checkbox') {
         return this.element.checked
