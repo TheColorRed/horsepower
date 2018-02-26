@@ -41,6 +41,11 @@ hr {
   flex-direction: column;
 }
 
+.cart-items {
+  max-height: 75vh;
+  overflow: auto;
+}
+
 .cart-items > div {
   display: flex;
   flex-direction: row;
@@ -49,6 +54,11 @@ hr {
 
 .empty {
   line-height: 1.5rem;
+}
+
+.out-of-stock {
+  font-weight: bold;
+  color: darkred;
 }
 
 .cart-items > div > span {

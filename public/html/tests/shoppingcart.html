@@ -27,20 +27,26 @@
     <div class="cart">
       <h2>Cart</h2>
       <div class="empty">Cart is empty</div>
-      <div class="cart-items"></div>
+      <div class="cart-items">
+        <div class="cart-item" hp-for="item in cart">
+          <a class="remove" href="" data-id="{{item.elementid}}">&times;</a>
+          <span hp-bind="item.title"></span>
+          <span hp-bind="item.price"></span>
+        </div>
+      </div>
       <hr>
       <div class="totals">
         <div>
           <span>Subtotal</span>
-          <span>$0.00</span>
+          <span>$<span hp-bind="subtotal">0.00</span></span>
         </div>
         <div>
           <span>Tax</span>
-          <span>$0.00</span>
+          <span>$<span hp-bind="tax">0.00</span></span>
         </div>
         <div>
           <span>Total</span>
-          <span>$0.00</span>
+          <span>$<span hp-bind="total">0.00</span></span>
         </div>
       </div>
     </div>

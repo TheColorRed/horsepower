@@ -16,6 +16,10 @@
   <p>
     <input type="text" name="" hp-model="root.query" placeholder="Find a dog breed">
   </p>
+  <p>Displaying
+    <b hp-bind="showing"></b> of
+    <b hp-bind="total"></b>
+  </p>
   <div class="items">
     <ol>
       <li hp-for="item in filtered">

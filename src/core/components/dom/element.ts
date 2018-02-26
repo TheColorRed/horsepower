@@ -15,14 +15,29 @@ namespace hp {
     }
 
     /**
-     * Finds an element
+     * Finds a child element of the document
      *
      * @param {string} selector
      * @returns
      * @memberof element
      */
-    public find(selector: string) {
-      return this.element.querySelector(selector)
+    public find(selector: string, callback?: (item: HTMLElement) => void) {
+      let found = document.querySelector(selector) as HTMLElement
+      typeof callback == 'function' && found && callback(found)
+      return found
+    }
+
+    /**
+     * Finds a child element of the current element
+     *
+     * @param {string} selector
+     * @returns
+     * @memberof element
+     */
+    public findChild(selector: string, callback?: (item: HTMLElement) => void) {
+      let found = this.element.querySelector(selector) as HTMLElement
+      typeof callback == 'function' && found && callback(found)
+      return found
     }
 
     /**
@@ -33,12 +48,21 @@ namespace hp {
      * @returns
      * @memberof element
      */
-    public closest(selector: string, callback: (item: HTMLElement) => void) {
+    public closest(selector: string, callback?: (item: HTMLElement) => void) {
       let item = this.element.closest(selector) as HTMLElement
-      if (item && typeof callback == 'function') {
-        callback(item)
-      }
+      item && typeof callback == 'function' && callback(item)
       return item
+    }
+
+    /**
+     * Tests if the current element matches the selector
+     *
+     * @param {string} selector
+     * @returns
+     * @memberof element
+     */
+    public isTarget(selector: string) {
+      return this.element.matches(selector)
     }
 
     /**
@@ -210,48 +234,57 @@ namespace hp {
      * Adds a child element at the end
      *
      * @template T
-     * @param {(string | HTMLElement | component | componentType<T>)} html
+     * @param {(string | HTMLElement | component | componentType<T>)} element
+     * @param {string} [content]
      * @returns
      * @memberof element
      */
-    public append<T extends element>(html: string | HTMLElement | component | componentType<T>) {
-      return this.insert('beforeend', html)
+    public append<T extends element>(element: string | HTMLElement | component | componentType<T>, content?: string) {
+      // public append<T extends element>(html: string | HTMLElement | component | componentType<T>) {
+      if (typeof element == 'string') element = this.makeElement(element, content)
+      return this.insert('beforeend', element)
     }
 
     /**
      * Adds a child element to the beginning
      *
      * @template T
-     * @param {(string | HTMLElement | component | componentType<T>)} html
+     * @param {(string | HTMLElement | component | componentType<T>)} element
+     * @param {string} [content]
      * @returns
      * @memberof element
      */
-    public prepend<T extends element>(html: string | HTMLElement | component | componentType<T>) {
-      return this.insert('afterbegin', html)
+    public prepend<T extends element>(element: string | HTMLElement | component | componentType<T>, content?: string) {
+      if (typeof element == 'string') element = this.makeElement(element, content)
+      return this.insert('afterbegin', element)
     }
 
     /**
      * Adds a child element before the element
      *
      * @template T
-     * @param {(string | HTMLElement | component | componentType<T>)} html
+     * @param {(string | HTMLElement | component | componentType<T>)} element
+     * @param {string} [content]
      * @returns
      * @memberof element
      */
-    public before<T extends element>(html: string | HTMLElement | component | componentType<T>) {
-      return this.insert('beforebegin', html)
+    public before<T extends element>(element: string | HTMLElement | component | componentType<T>, content?: string) {
+      if (typeof element == 'string') element = this.makeElement(element, content)
+      return this.insert('beforebegin', element)
     }
 
     /**
      * Adds a child element after the element
      *
      * @template T
-     * @param {(string | HTMLElement | component | componentType<T>)} html
+     * @param {(string | HTMLElement | component | componentType<T>)} element
+     * @param {string} [content]
      * @returns
      * @memberof element
      */
-    public after<T extends element>(html: string | HTMLElement | component | componentType<T>) {
-      return this.insert('afterend', html)
+    public after<T extends element>(element: string | HTMLElement | component | componentType<T>, content?: string) {
+      if (typeof element == 'string') element = this.makeElement(element, content)
+      return this.insert('afterend', element)
     }
 
     /**
@@ -267,7 +300,7 @@ namespace hp {
     public appendElement<T extends HTMLElement>(element: string, content?: string, asText: boolean = false): element {
       let el = this.makeElement<T>(element, content, asText)
       this.append(el)
-      return component.createNewComponent(el, hp.element)
+      return createNewComponent(el, hp.element)
     }
 
     /**
@@ -329,11 +362,12 @@ namespace hp {
      * @memberof element
      */
     public makeElement<T extends HTMLElement>(element: string, content?: string, asText: boolean = true): T {
-      let info = this.parseQuerySelector(element)
+      let info = hp.element.parseQuerySelector(element)
       let el = document.createElement(info.element)
       info.id.length > 0 && (el.id = info.id)
       info.classList.length > 0 && el.classList.add(...info.classList)
       info.attributes.forEach(a => a.key ? el.setAttribute(a.key, a.value) : el.setAttribute(a.value, a.value))
+      info.properties.forEach(p => el.setAttribute(p, p))
       if (asText) {
         el.textContent = typeof content !== 'undefined' ? content : ''
       } else {
@@ -463,12 +497,13 @@ namespace hp {
      * @returns
      * @memberof element
      */
-    public parseQuerySelector(selector: string) {
-      let obj: { classList: string[], id: string, element: string, attributes: { key: string, value: string }[] } = {
+    public static parseQuerySelector(selector: string) {
+      let obj: { classList: string[], id: string, element: string, properties: string[], attributes: { key: string, value: string }[] } = {
         classList: [],
         id: '',
         element: 'div',
-        attributes: []
+        attributes: [],
+        properties: []
       }
       obj.classList = (selector.match(/\.[a-z-_0-9]+/g) || []).map(v => v.replace('.', ''))
       obj.element = selector.toLowerCase().split(/[^a-z0-9]/, 2)[0] || 'div'
@@ -487,6 +522,7 @@ namespace hp {
               .replace(/('|")$/, '')
         })
       }, [])
+      obj.properties = (selector.match(/:\D+/g) || []).reduce<string[]>((r, v) => r.concat(v.replace(/^:/, '')), [])
       return obj
     }
   }

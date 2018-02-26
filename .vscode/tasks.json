@@ -26,7 +26,7 @@
     {
       "label": "Minify",
       "type": "shell",
-      "command": "./node_modules/.bin/watch \"uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js\"",
+      "command": "./node_modules/.bin/watch \"./node_modules/.bin/uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js\"",
       "args": [
         "./lib/",
         "--interval=1"

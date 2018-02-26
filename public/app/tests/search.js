@@ -2,7 +2,9 @@ class search extends hp.input {
   // Once the input is created get a list of json items
   async created() {
     this.disable(true)
+    this.rootScope.showing = 0
     await this.ajax.get('/dogs')
+    this.rootScope.total = this.items.length
   }
   ajaxResponse(data) {
     this.items = data
@@ -11,10 +13,11 @@ class search extends hp.input {
   }
   inputDelay(keyboard) {
     let val = this.value()
-    if (val == '') this.rootScope.filtered = []
+    if (val.length == 0) this.rootScope.filtered = []
     else this.rootScope.filtered = Array.from(this.items)
       // Find matching items
       .filter(i => new RegExp(val, 'gi').test(i))
+    this.rootScope.showing = this.rootScope.filtered.length
   }
 }
 

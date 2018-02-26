@@ -1,4 +1,5 @@
 class model extends hp.input {
+  created() { this.focus() }
   onScopeName(value) {
     /** @type {string[]} */
     let name = value.split(' ')

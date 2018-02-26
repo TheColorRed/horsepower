@@ -29,16 +29,6 @@ namespace hp {
     [key: string]: any
   }
 
-  export class observer<T extends element> {
-    public readonly component: componentType<T>
-    public readonly selector: string | HTMLElement | Document | Window
-
-    public constructor(component: componentType<T>, selectors: string | HTMLElement | Document | Window) {
-      this.component = component
-      this.selector = selectors
-    }
-  }
-
   export interface scope {
     scope: { [key: string]: any }
     element: HTMLElement | Document | Window
@@ -48,10 +38,12 @@ namespace hp {
 
     public readonly parent: component | null = null
     public readonly transform: transform
+    public readonly componentId: number
 
     private readonly _node: HTMLElement | Document | Window
     private static _keyboard: keyboard = new keyboard
     private static _mouse: mouse = new mouse
+    private static _nextId = 1
 
     private clicktimeoutid: number = 0
 
@@ -65,9 +57,9 @@ namespace hp {
       return this._node
     }
 
-    public static observer: MutationObserver
     public static observers: observer<any>[] = []
     public static components: component[] = []
+    public static elements: HTMLElement[] = []
     private static _rootScope: { [key: string]: any }
     public static scopes: scope[] = []
 
@@ -93,6 +85,7 @@ namespace hp {
       }
       this.transform = (this.getComponent(transform) || this) as transform
       this.formElementBinding()
+      this.componentId = component._nextId++
     }
 
     public get ajax() {
@@ -194,7 +187,7 @@ namespace hp {
     static tick(): any { }
 
     public addComponent<T extends element>(comp: componentType<T>): T {
-      return component.createNewComponent(this.element, comp)
+      return createNewComponent(this.element, comp)
     }
 
     public getComponent<T extends element>(comp: componentType<T>): T | null {
@@ -205,7 +198,6 @@ namespace hp {
     public removeComponent<T extends element>(comp: componentType<T>) {
       let idx = component.components.findIndex(c => c.element == this.element && c instanceof comp)
       idx > -1 && component.components.splice(idx, 1)
-      component.removeEmptyComponents()
     }
 
     public removeComponents<T extends element>(comp: componentType<T>) {
@@ -216,7 +208,6 @@ namespace hp {
         let idx = component.components.indexOf(item)
         idx > -1 && component.components.splice(idx, 1)
       }
-      component.removeEmptyComponents()
     }
 
     /**
@@ -294,7 +285,7 @@ namespace hp {
       if (el) {
         comp = component.components.find(c => c.element == el) as element
         if (!comp) {
-          comp = component.createNewComponent(el, element)
+          comp = createNewComponent(el, element)
         }
       }
       typeof callback == 'function' && comp instanceof element && callback(comp)
@@ -307,7 +298,7 @@ namespace hp {
       if (el) {
         comp = component.components.find(c => c.element == el) as element
         if (!comp) {
-          comp = component.createNewComponent(el, element)
+          comp = createNewComponent(el, element)
         }
       }
       typeof callback == 'function' && comp instanceof element && callback(comp)
@@ -321,7 +312,7 @@ namespace hp {
         if (el) {
           let comp = component.components.find(c => c.element == el) as element
           if (!comp) {
-            comp = component.createNewComponent(el, element)
+            comp = createNewComponent(el, element)
           }
           comp instanceof element && comps.push(comp)
           typeof callback == 'function' && comp instanceof element && callback(comp)
@@ -336,7 +327,7 @@ namespace hp {
       elements.forEach(el => {
         let comp = component.components.find(c => c.element == el)
         if (!comp) {
-          comp = component.createNewComponent(el, element)
+          comp = createNewComponent(el, element)
         }
         comp instanceof element && comps.push(comp)
         typeof callback == 'function' && comp instanceof element && callback(comp)
@@ -350,7 +341,7 @@ namespace hp {
       elements.forEach(el => {
         let comp = component.components.find(c => c.element == el)
         if (!comp) {
-          comp = component.createNewComponent(el, element)
+          comp = createNewComponent(el, element)
         }
         comp instanceof element && comps.push(comp)
         typeof callback == 'function' && comp instanceof element && callback(comp)
@@ -402,7 +393,7 @@ namespace hp {
       if (parentElement) {
         let parent = component.components.find(c => c.element == parentElement) as element
         if (!parent) {
-          comp = component.createNewComponent(el, element)
+          comp = createNewComponent(el, element)
         }
       }
       typeof callback == 'function' && comp instanceof element && callback(comp)
@@ -442,7 +433,7 @@ namespace hp {
       if (parentElement) {
         comp = component.components.find(c => c.element == parentElement) as element
         if (!comp) {
-          comp = component.createNewComponent(parentElement, element)
+          comp = createNewComponent(parentElement, element)
         }
       }
       typeof callback == 'function' && comp instanceof element && callback(comp)
@@ -483,7 +474,7 @@ namespace hp {
       if (!sibling) return null
       let comp = component.components.find(c => c.element == sibling) as T
       if (!comp) {
-        comp = component.createNewComponent(sibling, element) as T
+        comp = createNewComponent(sibling, element) as T
       }
       typeof callback == 'function' && callback(comp)
       return comp
@@ -555,22 +546,6 @@ namespace hp {
     }
 
     /**
-     * Removes components that don't have elements associated to them
-     *
-     * @private
-     * @memberof element
-     */
-    public static removeEmptyComponents() {
-      let i = component.components.length
-      while (i--) {
-        let comp = component.components[i]
-        if (!comp['_node']) {
-          component.components.splice(i, 1)
-        }
-      }
-    }
-
-    /**
      * Destroys the current element
      *
      * @memberof element
@@ -629,35 +604,14 @@ namespace hp {
         Array.from(item.querySelectorAll('*')).forEach(el => {
           component.components.forEach((c: any) => {
             el.remove()
-            c.element == el && (c['_node'] = null)
           })
         })
         // Detach elements from the components in the current item
         item.remove()
-        component.components.forEach((c: any) => c.element == item && (c['_node'] = null))
       } else if (item instanceof component) {
         let idx = component.components.indexOf(item)
         idx > -1 && component.components.splice(idx, 1)
       }
-      // Remove all components that don't have an element associated with them
-      component.removeEmptyComponents()
-    }
-
-    public static createNewComponent<T extends element>(element: HTMLElement | Document | Window, comp: componentType<T>, mutation?: MutationRecord): T {
-      let c = new comp(element)
-      typeof c.created == 'function' && c.created(mutation)
-      c.hasCreated = true
-      let newval: any = null
-      element instanceof HTMLElement && mutation && mutation.attributeName && (newval = element.getAttribute(mutation.attributeName))
-      this.components.filter(comp => comp.element == element).forEach(c =>
-        c.hasCreated && typeof c.modified == 'function' && mutation &&
-        c.modified(mutation.oldValue, newval, mutation.attributeName, mutation)
-      )
-      // Run the individual ticker for the component
-      if (typeof c.tick == 'function') {
-        c.runTick(0)
-      }
-      return c
     }
 
     public startLoop(next: number) {
@@ -672,7 +626,7 @@ namespace hp {
       }
     }
 
-    private runTick(next?: number) {
+    public runTick(next?: number) {
       if (typeof next == 'number') {
         setTimeout(() => {
           if (typeof this.tick != 'function') return

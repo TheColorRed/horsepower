@@ -15,7 +15,7 @@
   },
   "include": [
     "util/**/*.ts",
-    // "core/components/input/**/*.ts",
+    "core/input/**/*.ts",
     "core/component.ts",
     "core/components/dom/element.ts",
     "core/components/dom/document.ts",

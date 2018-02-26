@@ -45,4 +45,8 @@ namespace hp {
   export function snakeToCamel(s: string) {
     return s.replace(/(\-\w)/g, function (m) { return m[1].toUpperCase(); });
   }
+
+  export function escapeRegExp(str: string) {
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  }
 }

@@ -36,7 +36,7 @@ app.get('/nav', (req, res) => {
     { name: 'Allow/Block Input', file: '/html/inputblock.html' },
     { name: 'Stopwatch', file: '/html/stopwatch.html' },
     { name: 'Shopping Cart', file: '/html/shoppingcart.html' }
-  ])
+  ].sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1))
 })
 
 app.get('/dogs', (req, res) => {

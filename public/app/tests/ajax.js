@@ -1,5 +1,5 @@
 class form extends hp.form {
-  ajax(response) {
+  ajaxResponse(response) {
     response.array.forEach(number => this.afterElement('div', number))
     this.afterElement('div', response.object.a)
     response.object.b.forEach(item => this.afterElement('div', item))
