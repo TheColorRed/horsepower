@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    "outFile": "../dev/hp.js"
+  },
+  "extends": "./tsconfig.json"
+}

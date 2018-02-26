@@ -5,9 +5,11 @@
     "main": "./lib/hp.min.js",
     "types": "./lib/hp.d.ts",
     "scripts": {
-        "build": "npm run prepack",
-        "build:watch": "rm -rf ./lib && tsc -w -p ./src && watch 'uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js' ./lib",
-        "prepack": "rm -rf ./lib && tsc -p ./src && uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js"
+        "build:prod": "rm -rf ./lib && tsc -p ./src && uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js",
+        "build:dev": "rm -rf ./dev && tsc -p ./src/tsconfig.dev.json && uglifyjs --compress --mangle --output ./dev/hp.min.js -- ./dev/hp.js",
+        "build:all": "npm run build:dev & npm run build:prod",
+        "watch": "rm -rf ./dev && tsc -w -p ./src/tsconfig.dev.json && watch 'uglifyjs --compress --mangle --output ./dev/hp.min.js -- ./dev/hp.js' ./lib",
+        "prepack": "npm run build:prod"
     },
     "repository": {
         "type": "git",
@@ -21,11 +23,13 @@
     "author": "",
     "license": "ISC",
     "devDependencies": {
-        "compression": "^1.7.1",
+        "compression": "^1.7.2",
         "express": "^4.16.2",
-        "typescript": "^2.8.0-dev.20180211",
+        "typescript": "^2.8.0-insiders.20180127",
         "uglify-es": "^3.3.10",
         "watch": "^1.0.2"
     },
-    "dependencies": {}
+    "dependencies": {
+        "node-sass": "^4.7.2"
+    }
 }

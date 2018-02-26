@@ -1,4 +1,5 @@
 lib
+dev
 node_modules
 typings
 *.tgz
