@@ -5,7 +5,7 @@ namespace hp {
   export const rootScope = component.rootScope
 
   // Watch for document mutations
-  mutationObserver.create<any>({
+  mutationObserver.create({
     childList: true, subtree: true,
     attributes: true, attributeOldValue: true
   })

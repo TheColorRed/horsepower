@@ -14,7 +14,7 @@ namespace hp {
 
     public static observer: MutationObserver
 
-    public static create<T extends element>(options: MutationObserverInit) {
+    public static create(options: MutationObserverInit) {
       if (this.observer) return
       this.observer = new MutationObserver(mutationList => {
         mutationList.forEach(mutation => {
