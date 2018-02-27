@@ -11,7 +11,6 @@ namespace hp {
     created(mutation?: MutationRecord): void
     removed(): void
     modified(oldValue: any, newValue: any, attr: any, mutation?: MutationRecord): void
-    changed(newValue: any, oldValue: any, key: string | string[]): void
     onScope(newValue: any, oldValue: any, prop: string): void
     onBinding(newValue: any, oldValue: any, prop: string): void
     updated(value: any, prop: string): void

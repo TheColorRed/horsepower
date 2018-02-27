@@ -43,6 +43,10 @@ namespace hp {
     return c
   }
 
+  export function hasComponents(element: HTMLElement | Document | Window) {
+    return component.components.findIndex(c => c.element == element) > -1
+  }
+
   export function observe<T extends element>(selector: string | HTMLElement | Document | Window, ...comps: componentType<T>[]): void {
     comps.forEach(comp => {
       component.observers.push(new observer(comp, selector))
