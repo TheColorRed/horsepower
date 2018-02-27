@@ -1,6 +1,6 @@
 {
     "name": "horsepower",
-    "version": "0.0.3",
+    "version": "0.0.0",
     "description": "JavaScript library for the browsers DOM",
     "main": "./lib/hp.min.js",
     "types": "./lib/hp.d.ts",
