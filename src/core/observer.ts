@@ -67,7 +67,7 @@ namespace hp {
               if (mutation.attributeName) {
                 let newattr = target.getAttribute(mutation.attributeName)
                 if (c.hasCreated && mutation.oldValue != newattr) {
-                  typeof c.modified == 'function' && c.modified(mutation.oldValue, newattr, mutation.attributeName, mutation)
+                  typeof c.modified == 'function' && c.modified(newattr, mutation.oldValue, mutation.attributeName, mutation)
                 }
               }
             })

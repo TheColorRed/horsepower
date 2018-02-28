@@ -6,15 +6,24 @@ namespace hp {
       link.href = this.href
       return link.pathname
     }
+
     public get host(): string {
       let link = document.createElement('a')
       link.href = this.href
       return link.host
     }
+
     public get hostname(): string {
       let link = document.createElement('a')
       link.href = this.href
       return link.hostname
     }
+
+    public get hash(): string {
+      let link = document.createElement('a')
+      link.href = this.href
+      return link.hash
+    }
+
   }
 }

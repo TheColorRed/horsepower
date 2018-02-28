@@ -32,15 +32,21 @@ namespace hp {
     c.hasCreated = true
     let newval: any = null
     element instanceof HTMLElement && mutation && mutation.attributeName && (newval = element.getAttribute(mutation.attributeName))
-    component.components.filter(comp => comp.element == element).forEach(c =>
-      c.hasCreated && typeof c.modified == 'function' && mutation &&
-      c.modified(mutation.oldValue, newval, mutation.attributeName, mutation)
-    )
+    // component.components.filter(comp => comp.element == element).forEach(c =>
+    //   c.hasCreated && typeof c.modified == 'function' && mutation &&
+    //   c.modified(newval, mutation.oldValue, mutation.attributeName, mutation)
+    // )
     // Run the individual ticker for the component
     if (typeof c.tick == 'function') {
       c.runTick(0)
     }
     return c
+  }
+
+  export function getOrCreateComponent<T extends element>(element: Element | Document | Window, comp: componentType<T>) {
+    let newComp: T = component.components.find(c => c.element == element) as T
+    if (!newComp) newComp = createNewComponent(element as HTMLElement, comp)
+    return newComp
   }
 
   export function hasComponents(element: HTMLElement | Document | Window) {

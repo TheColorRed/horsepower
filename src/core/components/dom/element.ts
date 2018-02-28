@@ -21,10 +21,10 @@ namespace hp {
      * @returns
      * @memberof element
      */
-    public find(selector: string, callback?: (item: HTMLElement) => void) {
-      let found = document.querySelector(selector) as HTMLElement
-      typeof callback == 'function' && found && callback(found)
-      return found
+    public find(selector: string, callback?: (item: element) => void) {
+      let item = document.querySelector(selector) as HTMLElement
+      typeof callback == 'function' && item && callback(hp.getOrCreateComponent(item, element))
+      return item
     }
 
     /**
@@ -34,10 +34,79 @@ namespace hp {
      * @returns
      * @memberof element
      */
-    public findChild(selector: string, callback?: (item: HTMLElement) => void) {
-      let found = this.element.querySelector(selector) as HTMLElement
-      typeof callback == 'function' && found && callback(found)
-      return found
+    public findFromParent(selector: string, callback?: (item: element) => void) {
+      let parent = this.element.parentElement
+      let item = undefined
+      if (parent) {
+        item = parent.querySelector(selector) as HTMLElement
+        typeof callback == 'function' && item && callback(hp.getOrCreateComponent(item, element))
+      }
+      return item
+    }
+
+    public findChildElement(selector: string, callback?: (comp: element) => void): element | undefined {
+      let el = this.element.querySelector(selector) as HTMLElement
+      let comp: element | undefined
+      if (el) {
+        let comp = hp.getOrCreateComponent(el, element)
+        typeof callback == 'function' && comp instanceof element && callback(comp)
+      }
+      return comp as element
+    }
+
+    public findElements(selector: string, callback?: (comp: element) => void): element[] {
+      let elements: HTMLElement[] = Array.from(document.querySelectorAll(selector))
+      let comps: element[] = []
+      elements.forEach(el => {
+        if (el) {
+          let comp = hp.getOrCreateComponent(el, element)
+          comp instanceof element && comps.push(comp)
+          typeof callback == 'function' && comp instanceof element && callback(comp)
+        }
+      })
+      return comps
+    }
+
+    public findChildElements(selector: string, callback?: (comp: element) => void): element[] {
+      let elements = Array.from(this.element.querySelectorAll(selector)) as HTMLElement[]
+      let comps: element[] = []
+      elements.forEach(el => {
+        let comp = hp.getOrCreateComponent(el, element)
+        comp instanceof element && comps.push(comp)
+        typeof callback == 'function' && comp instanceof element && callback(comp)
+      })
+      return comps
+    }
+
+    public childElements(callback?: (comp: element) => void): element[] {
+      let elements = Array.from(this.element.children) as HTMLElement[]
+      let comps: element[] = []
+      elements.forEach(el => {
+        let comp = hp.getOrCreateComponent(el, element)
+        comps.push(comp)
+        typeof callback == 'function' && callback(comp)
+      })
+      return comps
+    }
+
+    public parentElement(callback?: (comp: element) => void): element | undefined {
+      let parent = this.element.parentElement
+      let comp: element | undefined
+      if (parent) {
+        comp = hp.getOrCreateComponent(parent, element)
+        comp && typeof callback == 'function' && callback(comp)
+      }
+      return comp
+    }
+
+    public findElement(selector: string, callback?: (comp: element) => void): element | undefined {
+      let el = document.querySelector(selector) as HTMLElement
+      let comp: element | undefined
+      if (el) {
+        comp = hp.getOrCreateComponent(el, element)
+        comp && typeof callback == 'function' && callback(comp)
+      }
+      return comp as element
     }
 
     /**
@@ -48,9 +117,9 @@ namespace hp {
      * @returns
      * @memberof element
      */
-    public closest(selector: string, callback?: (item: HTMLElement) => void) {
+    public closest(selector: string, callback?: (item: element) => void) {
       let item = this.element.closest(selector) as HTMLElement
-      item && typeof callback == 'function' && callback(item)
+      item && typeof callback == 'function' && callback(hp.getOrCreateComponent(item, element))
       return item
     }
 

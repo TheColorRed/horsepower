@@ -10,18 +10,17 @@ namespace hp {
     ajaxResponse(data: any): void
     created(mutation?: MutationRecord): void
     removed(): void
-    modified(oldValue: any, newValue: any, attr: any, mutation?: MutationRecord): void
+    modified(newValue: any, oldValue: any, attr: any, mutation?: MutationRecord): void
     onScope(newValue: any, oldValue: any, prop: string): void
     onBinding(newValue: any, oldValue: any, prop: string): void
     updated(value: any, prop: string): void
-    deleted(mutation?: MutationRecord): void
     childrenAdded(children: NodeList): void
     childrenRemoved(children: NodeList): void
     childrenChanged(children: NodeList): void
     keydown(keyboard: keyboard): void
     keyup(keyboard: keyboard): void
     clicked(mouse: mouse): void
-    heldDown(mouse: mouse): void
+    mouseHeldDown(mouse: mouse): void
     doubleClicked(mouse: mouse): void
     tick(): any
     loop(): any
@@ -71,7 +70,7 @@ namespace hp {
       typeof this.keyup == 'function' && this.node.addEventListener('keyup', this.onKeyUp.bind(this))
       typeof this.clicked == 'function' && this.node.addEventListener('click', this.onClicked.bind(this))
       typeof this.doubleClicked == 'function' && this.node.addEventListener('dblclick', this.onDoubleClicked.bind(this))
-      if (typeof this.heldDown == 'function') {
+      if (typeof this.mouseHeldDown == 'function') {
         this.node.addEventListener('touchstart', e => this.startClickHold(e as MouseEvent))
         this.node.addEventListener('mousedown', e => this.startClickHold(e as MouseEvent))
         this.node.addEventListener('touchend', e => this.stopClickHold())
@@ -151,7 +150,7 @@ namespace hp {
 
     private onClickHeld(e: MouseEvent) {
       e.preventDefault()
-      this.heldDown(this.mouse)
+      this.mouseHeldDown(this.mouse)
     }
 
     private onDoubleClicked(e: MouseEvent) {
@@ -278,76 +277,6 @@ namespace hp {
       return comps
     }
 
-    public findElement(selector: string, callback?: (comp: element) => void): element | undefined {
-      let el = document.querySelector(selector) as HTMLElement
-      let comp: element | undefined
-      if (el) {
-        comp = component.components.find(c => c.element == el) as element
-        if (!comp) {
-          comp = createNewComponent(el, element)
-        }
-      }
-      typeof callback == 'function' && comp instanceof element && callback(comp)
-      return comp as element
-    }
-
-    public findChildElement(selector: string, callback?: (comp: element) => void): element | undefined {
-      let el = this.element.querySelector(selector) as HTMLElement
-      let comp: element | undefined
-      if (el) {
-        comp = component.components.find(c => c.element == el) as element
-        if (!comp) {
-          comp = createNewComponent(el, element)
-        }
-      }
-      typeof callback == 'function' && comp instanceof element && callback(comp)
-      return comp as element
-    }
-
-    public findElements(selector: string, callback?: (comp: element) => void): element[] {
-      let elements: HTMLElement[] = Array.from(document.querySelectorAll(selector))
-      let comps: element[] = []
-      elements.forEach(el => {
-        if (el) {
-          let comp = component.components.find(c => c.element == el) as element
-          if (!comp) {
-            comp = createNewComponent(el, element)
-          }
-          comp instanceof element && comps.push(comp)
-          typeof callback == 'function' && comp instanceof element && callback(comp)
-        }
-      })
-      return comps
-    }
-
-    public findChildElements(selector: string, callback?: (comp: element) => void): element[] {
-      let elements = Array.from(this.element.querySelectorAll(selector)) as HTMLElement[]
-      let comps: element[] = []
-      elements.forEach(el => {
-        let comp = component.components.find(c => c.element == el)
-        if (!comp) {
-          comp = createNewComponent(el, element)
-        }
-        comp instanceof element && comps.push(comp)
-        typeof callback == 'function' && comp instanceof element && callback(comp)
-      })
-      return comps
-    }
-
-    public childElements(callback?: (comp: element) => void): element[] {
-      let elements = Array.from(this.element.children) as HTMLElement[]
-      let comps: element[] = []
-      elements.forEach(el => {
-        let comp = component.components.find(c => c.element == el)
-        if (!comp) {
-          comp = createNewComponent(el, element)
-        }
-        comp instanceof element && comps.push(comp)
-        typeof callback == 'function' && comp instanceof element && callback(comp)
-      })
-      return comps
-    }
-
     public broadcast(method: string, ...args: any[]) {
       component.components
         .filter(c => c.element == this.element)
@@ -383,20 +312,6 @@ namespace hp {
       let parent = component.components.find(c => c.element == this.element.parentElement) as T
       parent && typeof callback == 'function' && callback(parent)
       return parent
-    }
-
-    public parentElement(selector: string, callback?: (comp: element) => void): element | undefined {
-      let el = document.querySelector(selector) as HTMLElement
-      let parentElement = el ? el.parentElement : null
-      let comp: element | undefined
-      if (parentElement) {
-        let parent = component.components.find(c => c.element == parentElement) as element
-        if (!parent) {
-          comp = createNewComponent(el, element)
-        }
-      }
-      typeof callback == 'function' && comp instanceof element && callback(comp)
-      return comp
     }
 
     /**
@@ -621,7 +536,7 @@ namespace hp {
           if (typeof next == 'number') {
             this.startLoop(next)
           }
-        }, next)
+        }, next * 1000)
       }
     }
 
@@ -633,7 +548,7 @@ namespace hp {
           if (typeof next == 'number') {
             this.runTick(next)
           }
-        }, next)
+        }, next * 1000)
       }
     }
 
@@ -644,7 +559,7 @@ namespace hp {
           if (typeof tick == 'number') {
             this.runStaticTick(comp, tick)
           }
-        }, tick)
+        }, tick * 1000)
       }
     }
 
