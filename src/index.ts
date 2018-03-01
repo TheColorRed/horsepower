@@ -5,10 +5,14 @@ namespace hp {
   export const rootScope = component.rootScope
 
   // Watch for document mutations
-  mutationObserver.create({
+  core.mutationObserver.create({
     childList: true, subtree: true,
     attributes: true, attributeOldValue: true
   })
+
+  export function addTemplate(template: string | Element, data?: any) {
+    core.template.add(template, data)
+  }
 
   /**
    * Removes components that don't have elements associated to them
@@ -26,7 +30,7 @@ namespace hp {
     }
   }
 
-  export function createNewComponent<T extends element>(element: HTMLElement | Document | Window, comp: componentType<T>, mutation?: MutationRecord): T {
+  export function createNewComponent<T extends element>(element: hpElement, comp: componentType<T>, mutation?: MutationRecord): T {
     let c = new comp(element)
     typeof c.created == 'function' && c.created(mutation)
     c.hasCreated = true
@@ -43,19 +47,19 @@ namespace hp {
     return c
   }
 
-  export function getOrCreateComponent<T extends element>(element: Element | Document | Window, comp: componentType<T>) {
+  export function getOrCreateComponent<T extends element>(element: hpElement, comp: componentType<T>) {
     let newComp: T = component.components.find(c => c.element == element) as T
     if (!newComp) newComp = createNewComponent(element as HTMLElement, comp)
     return newComp
   }
 
-  export function hasComponents(element: HTMLElement | Document | Window) {
+  export function hasComponents(element: hpElement) {
     return component.components.findIndex(c => c.element == element) > -1
   }
 
-  export function observe<T extends element>(selector: string | HTMLElement | Document | Window, ...comps: componentType<T>[]): void {
+  export function observe<T extends element>(selector: string | hpElement, ...comps: componentType<T>[]): void {
     comps.forEach(comp => {
-      component.observers.push(new observer(comp, selector))
+      component.observers.push(new core.observer(comp, selector))
       // Run the component global ticker
       if (!domLoaded) {
         domLoaded = true

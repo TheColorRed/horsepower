@@ -1,10 +1,10 @@
-namespace hp {
+namespace hp.core {
 
   export class observer<T extends element> {
     public readonly component: componentType<T>
-    public readonly selector: string | HTMLElement | Document | Window
+    public readonly selector: string | hpElement
 
-    public constructor(component: componentType<T>, selectors: string | HTMLElement | Document | Window) {
+    public constructor(component: componentType<T>, selectors: string | hpElement) {
       this.component = component
       this.selector = selectors
     }

@@ -1,10 +1,12 @@
 namespace hp {
 
   export interface componentType<T extends element> {
-    new(element?: HTMLElement | Document | Window): T
+    new(element?: hpElement): T
     tick(components: component[]): any
     runStaticTick(comp: componentType<element>, tick?: number): void
   }
+
+  export type hpElement = HTMLElement | Document | Window
 
   export interface component {
     ajaxResponse(data: any): void
@@ -29,7 +31,7 @@ namespace hp {
 
   export interface scope {
     scope: { [key: string]: any }
-    element: HTMLElement | Document | Window
+    element: hpElement
   }
 
   export abstract class component {
@@ -38,7 +40,7 @@ namespace hp {
     public readonly transform: transform
     public readonly componentId: number
 
-    private readonly _node: HTMLElement | Document | Window
+    private readonly _node: hpElement
     private static _keyboard: keyboard = new keyboard
     private static _mouse: mouse = new mouse
     private static _nextId = 1
@@ -47,7 +49,7 @@ namespace hp {
 
     public get keyboard(): keyboard { return component._keyboard }
     public get mouse(): mouse { return component._mouse }
-    public get node(): HTMLElement | Document | Window { return this._node }
+    public get node(): hpElement { return this._node }
     public get element(): HTMLElement {
       if (this._node instanceof HTMLElement) return this._node
       if (this._node instanceof Window) return this._node.document.body
@@ -55,7 +57,7 @@ namespace hp {
       return this._node
     }
 
-    public static observers: observer<any>[] = []
+    public static observers: core.observer<any>[] = []
     public static components: component[] = []
     public static elements: HTMLElement[] = []
     private static _rootScope: { [key: string]: any }
@@ -63,7 +65,7 @@ namespace hp {
 
     public hasCreated: boolean = false
 
-    public constructor(node?: HTMLElement | Document | Window) {
+    public constructor(node?: hpElement) {
       component.components.push(this)
       this._node = !node ? window.document.createElement('div') : node
       this.node.addEventListener('keydown', this.onKeyDown.bind(this))
@@ -104,7 +106,7 @@ namespace hp {
     public get scope(): { [key: string]: any } {
       let scope = component.scopes.find(s => s.element == this.element)
       if (scope) return scope.scope
-      return proxy.createScope(this.element)
+      return core.proxy.createScope(this.element)
     }
 
     public get parentScope(): { [key: string]: any } {
@@ -115,14 +117,14 @@ namespace hp {
 
     public get rootScope(): { [key: string]: any } {
       if (!component._rootScope) {
-        component._rootScope = proxy.createScope(document)
+        component._rootScope = core.proxy.createScope(document)
       }
       return component._rootScope
     }
 
     public static get rootScope(): { [key: string]: any } {
       if (!component._rootScope) {
-        component._rootScope = proxy.createScope(document)
+        component._rootScope = core.proxy.createScope(document)
       }
       return component._rootScope
     }
@@ -283,7 +285,7 @@ namespace hp {
         .forEach((comp: any) => typeof comp[method] == 'function' && comp[method](...args))
     }
 
-    public broadcastTo<T extends element>(comp: componentType<T> | string | HTMLElement | Document | Window, method: string, ...args: any[]) {
+    public broadcastTo<T extends element>(comp: componentType<T> | string | hpElement, method: string, ...args: any[]) {
       if (typeof comp == 'string') {
         Array.from(document.querySelectorAll(comp)).forEach(el => {
           component.components.filter(c => c.element == el).forEach((c: any) => typeof c[method] == 'function' && c[method](...args))

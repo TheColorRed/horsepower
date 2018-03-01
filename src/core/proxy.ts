@@ -1,4 +1,4 @@
-namespace hp {
+namespace hp.core {
 
   export class proxy {
 
@@ -103,7 +103,7 @@ namespace hp {
 
     private static sendForEvents(element: HTMLElement | Document, prop: string, newValue: any, oldValue: any) {
       if (Array.isArray(newValue)) {
-        let templs = template.templates.filter(t => t.element.hasAttribute('hp-for'))
+        let templs = core.template.templates.filter(t => t.element.hasAttribute('hp-for'))
         templs.forEach(templ => {
           if (templ.element.hasAttribute('hp-for')) {
             let elfor = templ.element.getAttribute('hp-for') || ''
@@ -111,13 +111,13 @@ namespace hp {
             let [arg1, arg2] = value.split(',')
             let key = arg1 && arg2 ? arg1 : null
             let val = arg1 && !arg2 ? arg1 : arg2
-            if (Array.isArray(newValue) && source == prop) {
+            if (Array.isArray(newValue) && source == prop && templ.parent) {
               Array.from(templ.parent.children).forEach(child => component.destory(child as HTMLElement))
               newValue.forEach(itmValue => {
                 let newElement = templ.element.cloneNode(true) as HTMLElement
                 newElement.removeAttribute('hp-for')
                 this.sendBindEvents(newElement, key || val, itmValue, null)
-                templ.parent.appendChild(newElement)
+                templ.parent && templ.parent.appendChild(newElement)
               })
             }
           }

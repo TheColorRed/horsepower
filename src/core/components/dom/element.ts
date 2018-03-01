@@ -10,7 +10,7 @@ namespace hp {
       return this.element.textContent || ''
     }
 
-    public constructor(node?: HTMLElement | Document | Window) {
+    public constructor(node?: hpElement) {
       super(node)
     }
 
@@ -23,7 +23,7 @@ namespace hp {
      */
     public find(selector: string, callback?: (item: element) => void) {
       let item = document.querySelector(selector) as HTMLElement
-      typeof callback == 'function' && item && callback(hp.getOrCreateComponent(item, element))
+      typeof callback == 'function' && item && callback(getOrCreateComponent(item, element))
       return item
     }
 
@@ -39,7 +39,7 @@ namespace hp {
       let item = undefined
       if (parent) {
         item = parent.querySelector(selector) as HTMLElement
-        typeof callback == 'function' && item && callback(hp.getOrCreateComponent(item, element))
+        typeof callback == 'function' && item && callback(getOrCreateComponent(item, element))
       }
       return item
     }
@@ -48,7 +48,7 @@ namespace hp {
       let el = this.element.querySelector(selector) as HTMLElement
       let comp: element | undefined
       if (el) {
-        let comp = hp.getOrCreateComponent(el, element)
+        let comp = getOrCreateComponent(el, element)
         typeof callback == 'function' && comp instanceof element && callback(comp)
       }
       return comp as element
@@ -59,7 +59,7 @@ namespace hp {
       let comps: element[] = []
       elements.forEach(el => {
         if (el) {
-          let comp = hp.getOrCreateComponent(el, element)
+          let comp = getOrCreateComponent(el, element)
           comp instanceof element && comps.push(comp)
           typeof callback == 'function' && comp instanceof element && callback(comp)
         }
@@ -71,7 +71,7 @@ namespace hp {
       let elements = Array.from(this.element.querySelectorAll(selector)) as HTMLElement[]
       let comps: element[] = []
       elements.forEach(el => {
-        let comp = hp.getOrCreateComponent(el, element)
+        let comp = getOrCreateComponent(el, element)
         comp instanceof element && comps.push(comp)
         typeof callback == 'function' && comp instanceof element && callback(comp)
       })
@@ -82,7 +82,7 @@ namespace hp {
       let elements = Array.from(this.element.children) as HTMLElement[]
       let comps: element[] = []
       elements.forEach(el => {
-        let comp = hp.getOrCreateComponent(el, element)
+        let comp = getOrCreateComponent(el, element)
         comps.push(comp)
         typeof callback == 'function' && callback(comp)
       })
@@ -93,7 +93,7 @@ namespace hp {
       let parent = this.element.parentElement
       let comp: element | undefined
       if (parent) {
-        comp = hp.getOrCreateComponent(parent, element)
+        comp = getOrCreateComponent(parent, element)
         comp && typeof callback == 'function' && callback(comp)
       }
       return comp
@@ -103,7 +103,7 @@ namespace hp {
       let el = document.querySelector(selector) as HTMLElement
       let comp: element | undefined
       if (el) {
-        comp = hp.getOrCreateComponent(el, element)
+        comp = getOrCreateComponent(el, element)
         comp && typeof callback == 'function' && callback(comp)
       }
       return comp as element
@@ -119,7 +119,7 @@ namespace hp {
      */
     public closest(selector: string, callback?: (item: element) => void) {
       let item = this.element.closest(selector) as HTMLElement
-      item && typeof callback == 'function' && callback(hp.getOrCreateComponent(item, element))
+      item && typeof callback == 'function' && callback(getOrCreateComponent(item, element))
       return item
     }
 
