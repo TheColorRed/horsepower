@@ -1,6 +1,7 @@
 namespace hp {
   export interface templateInfo {
     data?: any
+    revalidate?: boolean
     template: string | Element
   }
   export interface template {
@@ -11,53 +12,68 @@ namespace hp {
     abstract bind(): templateInfo
 
     protected template?: core.template
+    protected revalidateTemplate: boolean = true
 
-    public constructor(node?: hpElement) {
+    public constructor(node: hpElement) {
       super(node)
       this.getTemplate(this.bind()).then(() => {
-        typeof this.preRender == 'function' && this.preRender()
-        let rendered = this.render()
-        rendered && typeof this.postRender == 'function' && this.postRender()
+        this.revalidate()
       })
     }
 
+    private revalidate() {
+      this.element.innerHTML = ''
+      typeof this.preRender == 'function' && this.preRender()
+      let rendered = this.render()
+      rendered && typeof this.postRender == 'function' && this.postRender()
+    }
+
     private async getTemplate(tplInfo: templateInfo) {
+      this.revalidateTemplate = tplInfo.revalidate ? tplInfo.revalidate : true
       let template = typeof tplInfo.template == 'string' ? await hp.ajax.get(tplInfo.template) : tplInfo.template
       let data = typeof tplInfo.template == 'string' ? await hp.ajax.get(tplInfo.data) : tplInfo.template
-      this.template = new core.template(template, this.element, data)
+      this.template = new core.template(template, this.element, this.templateProxy(data))
+    }
+
+    private templateProxy(data: any) {
+      if (data instanceof Object) {
+        for (let key in data) {
+          if (Array.isArray(data[key]) || data[key] instanceof Object) {
+            data[key] = this.templateProxy(data[key])
+          }
+        }
+      }
+      return new Proxy(data, {
+        set: (target, key, value) => {
+          Reflect.set(target, key, value)
+          if (this.revalidateTemplate) this.revalidate()
+          return true
+        },
+        get: (target, key) => Reflect.get(target, key)
+      })
     }
 
     private render() {
       if (!this.template) return false
       let sourceData = this.template.template.data
       let element = this.template.template.element
+      let clone = element.cloneNode(true) as Element
       let parent = this.template.template.parent as Element
-      // console.log(element, sourceData)
-      this.run(element, sourceData)
-      parent.innerHTML = element.outerHTML
-      // console.log(element)
+      this.processNode(clone, sourceData)
+      parent.innerHTML = clone.innerHTML
       return true
     }
 
-    private run(element: Element, data: any, source?: string, key?: string, val?: string) {
-      let hasBind = element.hasAttribute('hp-bind')
-      if (hasBind) {
-        element = this.bindElement(element, data, source, key, val)
-      } else {
-        Array.from(element.children).forEach(c => this.run(c, data, source, key, val))
-      }
+    private processNode(element: Element, data: any, source?: string, key?: string, val?: string) {
+      this.bindElement(element, data, source, key, val)
       Array.from(element.children).forEach(child => {
         let hasFor = child.hasAttribute('hp-for')
-        let hasBind = child.hasAttribute('hp-bind')
+        // let hasBind = child.hasAttribute('hp-bind')
+        this.bindElement(child, data, source, key, val)
         if (hasFor) {
           this.runFor(child, element, data)
-        } else if (hasBind) {
-          // console.log(child)
-          child = this.bindElement(child, data, source, key, val)
         } else {
-          Array.from(child.children).forEach(c => {
-            this.run(c, data)
-          })
+          this.processNode(child, data, source, key, val)
         }
       })
     }
@@ -71,32 +87,60 @@ namespace hp {
         let val = arg1 && !arg2 ? arg1 : arg2
         let reduce = this._reduce(source, data)
         Array.isArray(reduce) && reduce.forEach(item => {
-          let clone = element.cloneNode(true) as HTMLElement
+          let clone = element.cloneNode(true) as Element
           // clone.removeAttribute('hp-for')
           element.remove()
           parent.appendChild(clone)
-          this.run(clone, item, source, key, val)
+          this.processNode(clone, item, source, key, val)
         })
       }
     }
 
     private bindElement(element: Element, data: any, source?: string, key?: string, val?: string) {
+      let inlineBindings = this.inlineBindings(element)
+      let rm = ''
+      let selectorOrig = ''
+      let selector: string[] = []
+      let newSelector = ''
       if (element.hasAttribute('hp-bind')) {
-        let rm = ''
-        let selectorOrig = element.getAttribute('hp-bind') as string
-        let selector = selectorOrig.split('.')
+        selectorOrig = element.getAttribute('hp-bind') as string
+        selector = selectorOrig.split('.')
         selector.length > 1 && (rm = selector.shift() || '')
-        let newSelector = selector.join('.')
+        newSelector = selector.join('.')
         if (rm.length == 0 || (rm.length > 0 && rm == val)) {
           if (component.isFormItem(element)) {
             element.value = data[newSelector] || ''
           } else {
             element.innerHTML = data[newSelector] || ''
           }
-          // console.log(selector.join('.'), element, value)
         }
       }
-      return element
+      if (inlineBindings.length > 0) {
+        this.replaceInlineBindings(element, data, inlineBindings)
+      }
+    }
+
+    private inlineBindings(node: Element) {
+      let bindings: string[] = []
+      for (let i = 0; i < node.attributes.length; i++) {
+        let attr = node.attributes[i]
+        let matches = attr.value.match(/({{.+?}})/g)
+        if (matches) bindings = bindings.concat(matches)
+      }
+      let matches = (node.textContent || '').match(/({{.+?}})/g)
+      if (matches) bindings = bindings.concat(matches)
+      return bindings
+    }
+
+    private replaceInlineBindings(node: Element, data: any, bindings: string[]) {
+      bindings.forEach(binding => {
+        for (let i = 0; i < node.attributes.length; i++) {
+          let attr = node.attributes[i]
+          let selector = binding.replace(/{{|}}/g, '').split('.')
+          selector.shift()
+          attr.value = attr.value.replace(new RegExp(escapeRegExp(binding), 'g'), data[selector.join('.')])
+        }
+      })
     }
 
     private _reduce(selector: string, obj: any) {

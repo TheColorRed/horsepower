@@ -40,7 +40,7 @@ namespace hp {
     private shouldReconnect: boolean = true
     private reconnectDelay?: number = 1000
 
-    public constructor(element?: HTMLElement) {
+    public constructor(element?: Element) {
       super(element)
       let cfg = this.config()
       if (typeof cfg == 'string') { this.url = cfg }

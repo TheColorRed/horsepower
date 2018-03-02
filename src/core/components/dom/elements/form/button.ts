@@ -2,7 +2,7 @@ namespace hp {
 
   export abstract class button extends formItem {
 
-    public constructor(element?: HTMLElement) {
+    public constructor(element?: Element) {
       super(element)
       if (typeof this.accept == 'function') {
         if (this.element instanceof HTMLButtonElement ||

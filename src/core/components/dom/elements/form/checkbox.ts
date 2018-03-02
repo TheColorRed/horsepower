@@ -12,7 +12,7 @@ namespace hp {
       return false
     }
 
-    public constructor(element?: HTMLElement) {
+    public constructor(element?: Element) {
       super(element)
       if (typeof this.check == 'function') {
         if (this.element instanceof HTMLInputElement && this.element.getAttribute('type') == 'checkbox') {

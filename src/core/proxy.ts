@@ -2,11 +2,11 @@ namespace hp.core {
 
   export class proxy {
 
-    public static createScope(element: HTMLElement | Document) {
-      return this.proxyify(element, new Object)
+    public static createScope(element: Element | Document) {
+      return this.proxyify(new Object, element)
     }
 
-    private static proxyify(element: HTMLElement | Document, scope: any, propname?: string) {
+    public static proxyify(scope: any, element?: Element | Document, propname?: string) {
       scope = new Proxy(scope, {
         apply: (target, thisArg, argArray) => {
           return Reflect.apply(target, thisArg, argArray)
@@ -15,7 +15,7 @@ namespace hp.core {
           let prop = property.toString()
           let oldValue = target[prop]
           if (Array.isArray(value)) {
-            value = this.proxyify(element, value, prop)
+            value = this.proxyify(value, element, prop)
             // return Reflect.set(target, property, value)
           }
           // target[prop] = value
@@ -24,9 +24,11 @@ namespace hp.core {
           // console.log(target, property, oldValue, value)
           if (oldValue == value) return true
           let newValue = Array.isArray(target) ? target : value
-          this.sendScopeEvents(element, propname || prop, newValue, oldValue)
-          this.sendBindEvents(element, propname || prop, newValue, oldValue)
-          this.sendForEvents(element, propname || prop, newValue, oldValue)
+          if (element) {
+            this.sendScopeEvents(element, propname || prop, newValue, oldValue)
+            this.sendBindEvents(element, propname || prop, newValue, oldValue)
+            this.sendForEvents(element, propname || prop, newValue, oldValue)
+          }
           return true
         },
         get: (target, prop) => {
@@ -35,11 +37,14 @@ namespace hp.core {
           return Reflect.get(target, prop)
         }
       })
-      component.scopes.push({ element, scope })
+      if (element) {
+        component.scopes.push({ element, scope })
+      }
       return scope
     }
 
-    private static sendScopeEvents(element: HTMLElement | Document, prop: string, newValue: any, oldValue: any) {
+    private static sendScopeEvents(element: Element | Document | undefined, prop: string, newValue: any, oldValue: any) {
+      if (!element) return
       component.components.forEach(c => {
         if (c.element == element || element instanceof Document) {
           let fname = `onScope${hp.snakeToCamel(prop).replace(/^(.)/, v => v.toUpperCase())}`
@@ -49,9 +54,10 @@ namespace hp.core {
       })
     }
 
-    private static sendBindEvents(element: HTMLElement | Document, prop: string, newValue: any, oldValue: any) {
-      let elements = Array.from(<NodeListOf<HTMLElement>>element.getElementsByTagName('*'))
-      element instanceof HTMLElement && elements.push(element)
+    private static sendBindEvents(element: Element | Document | undefined, prop: string, newValue: any, oldValue: any) {
+      if (!element) return
+      let elements = Array.from(<NodeListOf<Element>>element.getElementsByTagName('*'))
+      element instanceof Element && elements.push(element)
       elements.filter(el => {
         if (el.hasAttribute('hp-bind')) return true
         else {
@@ -62,7 +68,7 @@ namespace hp.core {
           return false
         }
       })
-      element instanceof HTMLElement && element.hasAttribute('hp-bind') && elements.push(element)
+      element instanceof Element && element.hasAttribute('hp-bind') && elements.push(element)
       elements.forEach(el => {
         let attr = el.getAttribute('hp-bind')
         let origAttr = attr
@@ -101,7 +107,8 @@ namespace hp.core {
       })
     }
 
-    private static sendForEvents(element: HTMLElement | Document, prop: string, newValue: any, oldValue: any) {
+    private static sendForEvents(element: Element | Document | undefined, prop: string, newValue: any, oldValue: any) {
+      if (!element) return
       if (Array.isArray(newValue)) {
         let templs = core.template.templates.filter(t => t.element.hasAttribute('hp-for'))
         templs.forEach(templ => {
@@ -112,9 +119,9 @@ namespace hp.core {
             let key = arg1 && arg2 ? arg1 : null
             let val = arg1 && !arg2 ? arg1 : arg2
             if (Array.isArray(newValue) && source == prop && templ.parent) {
-              Array.from(templ.parent.children).forEach(child => component.destory(child as HTMLElement))
+              Array.from(templ.parent.children).forEach(child => component.destory(child as Element))
               newValue.forEach(itmValue => {
-                let newElement = templ.element.cloneNode(true) as HTMLElement
+                let newElement = templ.element.cloneNode(true) as Element
                 newElement.removeAttribute('hp-for')
                 this.sendBindEvents(newElement, key || val, itmValue, null)
                 templ.parent && templ.parent.appendChild(newElement)
@@ -125,8 +132,8 @@ namespace hp.core {
       }
     }
 
-    private static replaceInlineBindings(element: HTMLElement, prop: string, keys: string[], newValue: any) {
-      let elements: HTMLElement[] = Array.from(element.querySelectorAll('*'))
+    private static replaceInlineBindings(element: Element, prop: string, keys: string[], newValue: any) {
+      let elements: Element[] = Array.from(element.querySelectorAll('*'))
       elements.push(element)
       for (let e = 0; e < elements.length; e++) {
         let el = elements[e]
@@ -148,12 +155,12 @@ namespace hp.core {
       }
     }
 
-    private static getInlineBindings(element: HTMLElement, prop: string) {
-      let elements: HTMLElement[] = Array.from(element.querySelectorAll('*'))
+    private static getInlineBindings(element: Element, prop: string) {
+      let elements: Element[] = Array.from(element.querySelectorAll('*'))
       elements.push(element)
       let bindings: string[] = []
       for (let e = 0; e < elements.length; e++) {
-        let el = elements[e]
+        let el = elements[e] as HTMLElement
         let attrs = el.attributes
         // Test the attributes
         for (let i = 0; i < attrs.length; i++) {

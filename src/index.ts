@@ -5,7 +5,7 @@ namespace hp {
   export const rootScope = component.rootScope
 
   // Watch for document mutations
-  core.mutationObserver.create({
+  core.mutationObserver.masterObserver({
     childList: true, subtree: true,
     attributes: true, attributeOldValue: true
   })
@@ -35,7 +35,7 @@ namespace hp {
     typeof c.created == 'function' && c.created(mutation)
     c.hasCreated = true
     let newval: any = null
-    element instanceof HTMLElement && mutation && mutation.attributeName && (newval = element.getAttribute(mutation.attributeName))
+    element instanceof Element && mutation && mutation.attributeName && (newval = element.getAttribute(mutation.attributeName))
     // component.components.filter(comp => comp.element == element).forEach(c =>
     //   c.hasCreated && typeof c.modified == 'function' && mutation &&
     //   c.modified(newval, mutation.oldValue, mutation.attributeName, mutation)
@@ -49,7 +49,7 @@ namespace hp {
 
   export function getOrCreateComponent<T extends element>(element: hpElement, comp: componentType<T>) {
     let newComp: T = component.components.find(c => c.element == element) as T
-    if (!newComp) newComp = createNewComponent(element as HTMLElement, comp)
+    if (!newComp) newComp = createNewComponent(element as Element, comp)
     return newComp
   }
 

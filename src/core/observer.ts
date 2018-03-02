@@ -14,26 +14,34 @@ namespace hp.core {
 
     public static observer: MutationObserver
 
-    public static create(options: MutationObserverInit) {
+    public static masterObserver(options: MutationObserverInit) {
       if (this.observer) return
-      this.observer = new MutationObserver(mutationList => {
+      this.observer = this.create()
+      this.observer.observe(document, options)
+    }
+
+    private static testNode(node: Element) {
+      component.observers.forEach(o => {
+        if (typeof o.selector == 'string' && node.matches(o.selector)) {
+          let idx = component.elements.findIndex(i => i == node)
+          idx == -1 && component.elements.push(node as Element)
+          if (idx > -1) return
+          createNewComponent(node as Element, o.component)
+        }
+      })
+    }
+
+    public static create() {
+      return new MutationObserver(mutationList => {
         mutationList.forEach(mutation => {
-          let target = mutation.target as HTMLElement
+          let target = mutation.target as Element
           if (mutation.type == 'childList') {
             mutation.addedNodes.forEach(node => {
-              if (node instanceof HTMLElement) {
+              if (node instanceof Element) {
                 let nodes = Array.from(node.querySelectorAll('*'))
                 nodes.push(node)
                 nodes.forEach(n => {
-                  component.observers.forEach(o => {
-                    let idx = component.elements.findIndex(i => i == n)
-                    if (typeof o.selector == 'string' && n.matches(o.selector)) {
-                      idx == -1 && component.elements.push(n as HTMLElement)
-                      if (idx > -1) return
-                      // createNewComponent(item.element, transform)
-                      createNewComponent(n as HTMLElement, o.component)
-                    }
-                  })
+                  this.testNode(n)
                 })
               }
             })
@@ -73,16 +81,7 @@ namespace hp.core {
             })
           }
         })
-
-        // creatableElements.forEach(item => {
-        //   let idx = component.elements.findIndex(i => i == item.element)
-        //   idx == -1 && component.elements.push(item.element)
-        //   if (idx > -1) return
-        //   // createNewComponent(item.element, transform)
-        //   createNewComponent(item.element, item.component)
-        // })
       })
-      this.observer.observe(document, options)
     }
   }
 

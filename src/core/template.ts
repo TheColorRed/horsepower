@@ -1,8 +1,8 @@
 namespace hp.core {
   document.addEventListener('DOMContentLoaded', e => {
-    Array.from(document.querySelectorAll<HTMLElement>('[hp-for]')).forEach(el => {
+    Array.from(document.querySelectorAll<Element>('[hp-for]')).forEach(el => {
       template.templates.push({
-        element: el, parent: <HTMLElement>el.parentElement
+        element: el, parent: <Element>el.parentElement
       })
       el.remove()
     })
@@ -32,12 +32,11 @@ namespace hp.core {
     }
 
     private static toTemplate(tpl: string | Element) {
-      let element: Element
+      let element = document.createElement('div')
       if (typeof tpl == 'string') {
-        element = document.createElement('div')
         element.innerHTML = tpl
       } else {
-        element = tpl
+        element.appendChild(tpl)
       }
       return element
     }

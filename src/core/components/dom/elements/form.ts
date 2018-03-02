@@ -7,7 +7,7 @@ namespace hp {
 
   export abstract class form extends element {
 
-    public constructor(node?: HTMLElement) {
+    public constructor(node?: Element) {
       super(node)
       if (this.element instanceof HTMLFormElement) {
         let submit = this.element.querySelector('input[type=submit]') as HTMLButtonElement

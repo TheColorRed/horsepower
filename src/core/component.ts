@@ -6,7 +6,7 @@ namespace hp {
     runStaticTick(comp: componentType<element>, tick?: number): void
   }
 
-  export type hpElement = HTMLElement | Document | Window
+  export type hpElement = Element | Document | Window
 
   export interface component {
     ajaxResponse(data: any): void
@@ -54,12 +54,12 @@ namespace hp {
       if (this._node instanceof HTMLElement) return this._node
       if (this._node instanceof Window) return this._node.document.body
       if (this._node instanceof Document) return this._node.body
-      return this._node
+      return this._node as HTMLElement
     }
 
     public static observers: core.observer<any>[] = []
     public static components: component[] = []
-    public static elements: HTMLElement[] = []
+    public static elements: Element[] = []
     private static _rootScope: { [key: string]: any }
     public static scopes: scope[] = []
 
@@ -80,7 +80,7 @@ namespace hp {
         this.node.addEventListener('mouseup', e => this.stopClickHold())
         this.node.addEventListener('mouseout', e => this.stopClickHold())
       }
-      if (node instanceof HTMLElement) {
+      if (node instanceof Element) {
         this.parent = this.closestComponent(element)
       }
       this.transform = (this.getComponent(transform) || this) as transform
@@ -216,11 +216,11 @@ namespace hp {
      * @static
      * @template T
      * @param {componentType<T>} comp
-     * @param {HTMLElement} element
+     * @param {Element} element
      * @returns
      * @memberof component
      */
-    public static elementComponent<T extends element>(comp: componentType<T>, element: HTMLElement) {
+    public static elementComponent<T extends element>(comp: componentType<T>, element: Element) {
       return this.components.find(c => c instanceof comp && c.element == element) as T
     }
 
@@ -230,11 +230,11 @@ namespace hp {
      * @static
      * @template T
      * @param {componentType<T>} comp
-     * @param {HTMLElement} element
+     * @param {Element} element
      * @returns
      * @memberof component
      */
-    public static elementComponents<T extends element>(comp: componentType<T>, element: HTMLElement) {
+    public static elementComponents<T extends element>(comp: componentType<T>, element: Element) {
       return this.components.filter(c => c instanceof comp && c.element == element) as T[]
     }
 
@@ -290,7 +290,7 @@ namespace hp {
         Array.from(document.querySelectorAll(comp)).forEach(el => {
           component.components.filter(c => c.element == el).forEach((c: any) => typeof c[method] == 'function' && c[method](...args))
         })
-      } else if (comp instanceof HTMLElement || comp instanceof Document || comp instanceof Window) {
+      } else if (comp instanceof Element || comp instanceof Document || comp instanceof Window) {
         component.components.filter(c => c.node == comp).forEach((c: any) => typeof c[method] == 'function' && c[method](...args))
       } else {
         component.components.filter(c => c instanceof comp).forEach((c: any) => typeof c[method] == 'function' && c[method](...args))
@@ -331,7 +331,7 @@ namespace hp {
       return parent
     }
 
-    private _closestComponent<T extends element>(comp: componentType<T>, target?: HTMLElement): T | null {
+    private _closestComponent<T extends element>(comp: componentType<T>, target?: Element): T | null {
       let parent = target ? target.parentElement : this.element.parentElement
       if (parent) {
         let c = component.components.find(c => c instanceof comp && c.element == parent)
@@ -344,7 +344,7 @@ namespace hp {
     }
 
     public closestElement(selector: string, callback?: (comp: element) => void): element | undefined {
-      let parentElement = this.element.closest(selector) as HTMLElement
+      let parentElement = this.element.closest(selector) as Element
       let comp: element | undefined
       if (parentElement) {
         comp = component.components.find(c => c.element == parentElement) as element
@@ -377,7 +377,7 @@ namespace hp {
     }
 
     public childComponents<T extends element>(comp: componentType<T>, callback?: (item: T) => void): T[] {
-      let items = Array.from(this.element.querySelectorAll<HTMLElement>('*'))
+      let items = Array.from(this.element.querySelectorAll<Element>('*'))
       let comps = component.components.filter(c => c instanceof comp && items.indexOf(c.element) > -1) as T[]
       typeof callback == 'function' && comps.forEach(c => callback(c))
       return comps
@@ -386,7 +386,7 @@ namespace hp {
     public siblingElement<T extends element>(selector: string, callback?: (item: T) => void): T | null {
       let parent = this.element.parentElement
       if (!parent) return null
-      let sibling = parent.querySelector(':scope > ' + selector) as HTMLElement
+      let sibling = parent.querySelector(':scope > ' + selector) as Element
       if (!sibling) return null
       let comp = component.components.find(c => c.element == sibling) as T
       if (!comp) {
@@ -407,7 +407,7 @@ namespace hp {
      */
     public siblingComponent<T extends element>(comp: componentType<T>, callback?: (item: T) => void): T | null {
       let c = component.components.find(c => {
-        if (this.element instanceof HTMLElement && this.element.parentElement) {
+        if (this.element instanceof Element && this.element.parentElement) {
           let nodes = this.element.parentElement.childNodes
           for (let i = 0; i < nodes.length; i++) {
             return c instanceof comp && c.element == nodes[i]
@@ -446,7 +446,7 @@ namespace hp {
       let inclusive = args.length == 3 ? args[1] : false
       let callback = args.length == 3 ? args[2] : args[1]
       let components = component.components.filter(c => {
-        if (this.element instanceof HTMLElement && this.element.parentElement) {
+        if (this.element instanceof Element && this.element.parentElement) {
           let nodes = this.element.parentElement.childNodes
           for (let i = 0; i < nodes.length; i++) {
             if (inclusive) {
@@ -477,23 +477,23 @@ namespace hp {
     /**
      * Destroys a particular element or component
      *
-     * @param {(HTMLElement | component)} [item]
+     * @param {(Element | component)} [item]
      * @memberof element
      */
-    public destroy(item: HTMLElement | component): void
+    public destroy(item: Element | component): void
     /**
      * Destroys a particular element or component after a delay in seconds
      *
-     * @param {(HTMLElement | component)} item
+     * @param {(Element | component)} item
      * @param {number} delay
      * @memberof component
      */
-    public destroy(item: HTMLElement | component, delay: number): void
+    public destroy(item: Element | component, delay: number): void
     public destroy(...args: any[]): void {
-      let item: HTMLElement | component = this.element
+      let item: Element | component = this.element
       let delay: number = 0
       // Set the element
-      if (args[0] instanceof HTMLElement) item = args[0]
+      if (args[0] instanceof Element) item = args[0]
       else if (args[0] instanceof component) item = args[0]
       // Set the delay
       if (typeof args[0] == 'number') delay = args[0]
@@ -506,7 +506,7 @@ namespace hp {
       }
     }
 
-    public static destory(item: HTMLElement | component, delay: number = 0) {
+    public static destory(item: Element | component, delay: number = 0) {
       if (delay > 0) {
         setTimeout(() => component._destroy(item), delay * 1000)
       } else {
@@ -514,8 +514,8 @@ namespace hp {
       }
     }
 
-    private static _destroy(item: HTMLElement | component) {
-      if (item instanceof HTMLElement) {
+    private static _destroy(item: Element | component) {
+      if (item instanceof Element) {
         // Detatch elements from the components in the children
         Array.from(item.querySelectorAll('*')).forEach(el => {
           component.components.forEach((c: any) => {

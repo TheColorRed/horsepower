@@ -6,9 +6,8 @@ namespace hp {
     public get id(): string { return this.element.id }
     public set id(value: string) { this.element.id = value }
 
-    public get text(): string {
-      return this.element.textContent || ''
-    }
+    public get text(): string { return this.element.textContent || '' }
+    public set text(value: string) { this.element.textContent = value || '' }
 
     public constructor(node?: hpElement) {
       super(node)
