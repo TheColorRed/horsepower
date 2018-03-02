@@ -108,6 +108,24 @@ namespace hp {
       return comp as element
     }
 
+    public upstream(selector: string, callback?: (comp: element) => void) {
+      this._upstreamSelector(selector, this.element, callback)
+    }
+
+    private _upstreamSelector(selector: string, target?: Element, callback?: (comp: element) => void) {
+      let parent = target ? target.parentElement : this.element.parentElement
+      if (parent) {
+        Array.from(parent.querySelectorAll(`:scope > ${selector}`)).forEach(item => {
+          component.components.forEach(comp => {
+            if (comp.element == item) {
+              typeof callback == 'function' && callback(comp as element)
+            }
+          })
+        })
+        this._upstreamSelector(selector, parent, callback)
+      }
+    }
+
     /**
      * Finds the closest element
      *

@@ -26,7 +26,7 @@ app.get('/nav', (req, res) => {
   res.json([
     { name: 'Ajax', file: '/html/ajax.html' },
     { name: 'Binding', file: '/html/bind.html' },
-    { name: 'Search', file: '/html/search.html', active: true },
+    { name: 'Search', file: '/html/search.html' },
     { name: 'Blockchain Websocket', file: '/html/blockchain.html' },
     { name: 'Calculator', file: '/html/calculator.html' },
     { name: 'Carousel', file: '/html/carousel.html' },
@@ -35,7 +35,8 @@ app.get('/nav', (req, res) => {
     { name: 'Creation', file: '/html/creation.html' },
     { name: 'Allow/Block Input', file: '/html/inputblock.html' },
     { name: 'Stopwatch', file: '/html/stopwatch.html' },
-    { name: 'Shopping Cart', file: '/html/shoppingcart.html' }
+    { name: 'Shopping Cart', file: '/html/shoppingcart.html' },
+    { name: 'Disable Enable', file: '/html/disableEnable.html', active: true }
   ].sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1))
 })
 

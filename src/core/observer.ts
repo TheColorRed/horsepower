@@ -71,17 +71,25 @@ namespace hp.core {
               })
             }
           } else if (mutation.type == 'attributes') {
-            component.components.filter(comp => comp.element == target).forEach(c => {
+            component.components.filter(comp => comp.element == target).forEach(comp => {
               if (mutation.attributeName) {
+                this.dsabledPropChanged(comp)
                 let newattr = target.getAttribute(mutation.attributeName)
-                if (c.hasCreated && mutation.oldValue != newattr) {
-                  typeof c.modified == 'function' && c.modified(newattr, mutation.oldValue, mutation.attributeName, mutation)
+                if (comp.hasCreated && mutation.oldValue != newattr) {
+                  typeof comp.modified == 'function' && comp.modified(newattr, mutation.oldValue, mutation.attributeName, mutation)
                 }
               }
             })
           }
         })
       })
+    }
+
+    private static dsabledPropChanged(comp: component) {
+      if (comp instanceof formItem) {
+        typeof comp.disabled == 'function' && comp.inactive && comp.disabled()
+        typeof comp.enabled == 'function' && !comp.inactive && comp.enabled()
+      }
     }
   }
 

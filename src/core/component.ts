@@ -279,6 +279,23 @@ namespace hp {
       return comps
     }
 
+    public componentUpstream<T extends element>(comp: componentType<T>, callback?: (comp: T) => void) {
+      // let cur = this.element.parentElement
+      // if (!cur) return
+      let parent = this.closestComponent(comp)
+      console.log(parent)
+    }
+
+    private _upstream<T extends element>(comp: T, type: componentType<T>, callback?: (comp: T) => void) {
+      let cur = this.element.parentElement
+      component.components.forEach(c => {
+        if (c instanceof type && cur == c.element) {
+          typeof callback == 'function' && callback(c as T)
+          if (cur) this._upstream<T>(c as T, type, callback)
+        }
+      })
+    }
+
     public broadcast(method: string, ...args: any[]) {
       component.components
         .filter(c => c.element == this.element)
@@ -311,7 +328,7 @@ namespace hp {
      * @memberof component
      */
     public parentComponent<T extends element>(comp: componentType<T>, callback?: (component: T) => void): T | null {
-      let parent = component.components.find(c => c.element == this.element.parentElement) as T
+      let parent = component.components.find(c => c instanceof comp && c.element == this.element.parentElement) as T
       parent && typeof callback == 'function' && callback(parent)
       return parent
     }

@@ -1,7 +1,7 @@
 namespace hp {
 
   export interface checkbox {
-    check(checked: boolean): void
+    toggled(checked: boolean): void
   }
 
   export abstract class checkbox extends formItem {
@@ -12,9 +12,9 @@ namespace hp {
       return false
     }
 
-    public constructor(element?: Element) {
+    public constructor(element?: HTMLInputElement) {
       super(element)
-      if (typeof this.check == 'function') {
+      if (typeof this.toggled == 'function') {
         if (this.element instanceof HTMLInputElement && this.element.getAttribute('type') == 'checkbox') {
           this.node.addEventListener('click', this.onChecked.bind(this))
         }
@@ -22,7 +22,7 @@ namespace hp {
     }
 
     private onChecked(e: MouseEvent) {
-      this.check((<any>this.element).checked)
+      this.toggled((<HTMLInputElement>this.element).checked)
     }
   }
 }

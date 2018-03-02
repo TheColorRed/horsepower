@@ -17,11 +17,11 @@ namespace hp {
       }
     }
 
-    public disabled(disabled: boolean) {
-      if (this.element instanceof HTMLInputElement || this.element instanceof HTMLButtonElement) {
-        this.element.disabled = disabled
-      }
-    }
+    // public disabled(disabled: boolean) {
+    //   if (this.element instanceof HTMLInputElement || this.element instanceof HTMLButtonElement) {
+    //     this.element.disabled = disabled
+    //   }
+    // }
 
     private onButtonAccept(e: KeyboardEvent) {
       e.preventDefault()
