@@ -170,8 +170,8 @@ namespace hp {
      * @returns {*}
      * @memberof element
      */
-    public getAttribute(key: string, fallback?: any): any {
-      return this.element.getAttribute(key)
+    public getAttribute(key: string, fallback: any = ''): any {
+      return this.element.getAttribute(key) || fallback
     }
 
     /**

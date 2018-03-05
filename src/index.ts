@@ -1,6 +1,6 @@
 namespace hp {
 
-  let domLoaded: boolean = false
+  // let domLoaded: boolean = false
 
   export const rootScope = component.rootScope
 
@@ -57,25 +57,43 @@ namespace hp {
     return component.components.findIndex(c => c.element == element) > -1
   }
 
+  export function query(selector: string, obj: any) {
+    return _selectorParts(selector)
+      .reduce((o, i) => o[i], obj)
+  }
+
+  function _selectorParts(selector: string): string[] {
+    let parts: string[] = []
+    selector.trim().split('.').forEach(item => {
+      item.split('[').filter(n => n && n.length > 0).forEach(item => {
+        parts.push(item.replace(/\]/g, '').trim())
+      })
+    })
+    return parts
+  }
+
   export function observe<T extends element>(selector: string | hpElement, ...comps: componentType<T>[]): void {
     comps.forEach(comp => {
       component.observers.push(new core.observer(comp, selector))
-      // Run the component global ticker
-      if (!domLoaded) {
-        domLoaded = true
-        document.addEventListener('DOMContentLoaded', () => {
-          if (selector instanceof Document || selector instanceof Window) {
-            createNewComponent(selector, comp)
-          }
-          let componentExists = component.components.find(c => c instanceof comp)
-          if (!componentExists) {
-            let staticTick = comp.tick(component.components.filter(c => c instanceof comp))
-            if (typeof staticTick == 'number') {
-              comp.runStaticTick(comp, staticTick)
-            }
-          }
-        })
+      if (selector instanceof Document || selector instanceof Window) {
+        createNewComponent(selector, comp)
       }
+      // Run the component global ticker
+      // if (!domLoaded) {
+      //   domLoaded = true
+      //   document.addEventListener('DOMContentLoaded', () => {
+      //     if (selector instanceof Document || selector instanceof Window) {
+      //       createNewComponent(selector, comp)
+      //     }
+      //     let componentExists = component.components.find(c => c instanceof comp)
+      //     if (!componentExists) {
+      //       let staticTick = comp.tick(component.components.filter(c => c instanceof comp))
+      //       if (typeof staticTick == 'number') {
+      //         comp.runStaticTick(comp, staticTick)
+      //       }
+      //     }
+      //   })
+      // }
     })
   }
 }

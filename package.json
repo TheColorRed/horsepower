@@ -8,7 +8,7 @@
         "build:prod": "rm -rf ./lib && tsc -p ./src && uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js",
         "build:dev": "rm -rf ./dev && tsc -p ./src/tsconfig.dev.json && uglifyjs --compress --mangle --output ./dev/hp.min.js -- ./dev/hp.js",
         "build:all": "npm run build:dev & npm run build:prod",
-        "watch": "watch 'uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js' ./lib",
+        "watch": "tsc -w -p ./src && watch 'uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js' ./lib",
         "prepack": "npm run build:prod"
     },
     "repository": {
@@ -23,13 +23,10 @@
     "author": "",
     "license": "ISC",
     "devDependencies": {
-        "compression": "^1.7.2",
-        "express": "^4.16.2",
-        "typescript": "^2.8.0-insiders.20180127",
-        "uglify-es": "^3.3.10",
-        "watch": "^1.0.2"
+        "typescript": "^2.8.0-insiders.20180127"
     },
     "dependencies": {
+        "compression": "^1.7.2",
         "node-sass": "^4.7.2"
     }
 }

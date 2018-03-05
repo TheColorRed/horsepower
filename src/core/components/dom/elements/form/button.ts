@@ -4,12 +4,12 @@ namespace hp {
 
     public constructor(element?: Element) {
       super(element)
-      if (typeof this.accept == 'function') {
+      if (typeof this.accepted == 'function') {
         if (this.element instanceof HTMLButtonElement ||
           (this.element instanceof HTMLInputElement && ['button', 'submit', 'reset'].indexOf(this.element.getAttribute('type') || '') != -1)) {
           this.node.addEventListener('click', this.onButtonAccept.bind(this))
         }
-      } else if (typeof this.reject == 'function') {
+      } else if (typeof this.rejected == 'function') {
         if (this.element instanceof HTMLButtonElement ||
           (this.element instanceof HTMLInputElement && ['button', 'submit', 'reset'].indexOf(this.element.getAttribute('type') || '') != -1)) {
           this.node.addEventListener('click', this.onButtonReject.bind(this))
@@ -25,12 +25,12 @@ namespace hp {
 
     private onButtonAccept(e: KeyboardEvent) {
       e.preventDefault()
-      this.accept((<any>this.element).value)
+      this.accepted((<any>this.element).value)
     }
 
     private onButtonReject(e: KeyboardEvent) {
       e.preventDefault()
-      this.reject((<any>this.element).value)
+      this.rejected((<any>this.element).value)
     }
   }
 }

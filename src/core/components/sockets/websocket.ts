@@ -8,6 +8,15 @@ namespace hp {
     public constructor(public key: string | RegExp, public val: string | RegExp, public callback: (message: any) => void) { }
   }
 
+  export interface websocket {
+    connected(evt: Event): void
+    disconnected(): void
+    message(msg: object | string): void
+    closed(evt: CloseEvent): void
+    errored(evt: Event): void
+    pong(): void
+  }
+
   export abstract class websocket extends element {
 
     private _client?: WebSocket
@@ -17,14 +26,6 @@ namespace hp {
     private _isevents: WebSocketCustomEvent[] = []
 
     public get client(): WebSocket | undefined { return this._client }
-
-    // Overwriteable methods
-    public connect(evt: Event) { }
-    public disconnected() { }
-    public message(msg: object | string) { }
-    public close(evt: CloseEvent) { }
-    public error(evt: Event) { }
-    public pong() { }
 
     abstract config(): string | {
       url: string
@@ -59,7 +60,7 @@ namespace hp {
     }
 
     private onOpen(e: Event) {
-      this.connect(e)
+      this.connected(e)
     }
 
     private onMessage(e: MessageEvent) {
@@ -126,7 +127,7 @@ namespace hp {
     }
 
     private onClose(e: CloseEvent) {
-      this.close(e)
+      this.closed(e)
       if (this.shouldReconnect && !this._client) {
         setTimeout(() => {
           this._client = new WebSocket(this.url, this.protocols)
@@ -135,7 +136,7 @@ namespace hp {
     }
 
     private onError(e: Event) {
-      this.error(e)
+      this.errored(e)
     }
 
     /**

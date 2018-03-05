@@ -1,8 +1,8 @@
 namespace hp {
 
   export interface form {
-    accept(value: string): void
-    reject(value: string): void
+    accepted(value: string): void
+    rejected(value: string): void
   }
 
   export abstract class form extends element {

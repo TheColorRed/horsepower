@@ -16,7 +16,7 @@
     {
       "label": "Build TypeScript",
       "type": "shell",
-      "command": "./node_modules/.bin/tsc",
+      "command": "tsc",
       "args": [
         "-w",
         "-p",
@@ -26,7 +26,7 @@
     {
       "label": "Minify",
       "type": "shell",
-      "command": "./node_modules/.bin/watch \"uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js\"",
+      "command": "watch \"uglifyjs --compress --mangle --output ./lib/hp.min.js -- ./lib/hp.js\"",
       "args": [
         "./lib",
         "--interval=1"
