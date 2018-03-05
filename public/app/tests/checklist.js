@@ -1,4 +1,4 @@
-class add extends hp.input {
+class add extends hp.text {
   created() {
     this.scope.list = []
   }

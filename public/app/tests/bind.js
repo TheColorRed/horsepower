@@ -1,4 +1,4 @@
-class model extends hp.input {
+class model extends hp.text {
   created() { this.focus() }
   onScopeName(value) {
     /** @type {string[]} */

@@ -1,17 +1,17 @@
 namespace hp {
 
-  export interface input {
+  export interface text {
     input(value: keyboard): void
     acceptKey: number | number[]
     rejectKey: number | number[]
     inputDelay(value: keyboard): void
   }
 
-  export abstract class input extends formItem {
+  export abstract class text extends formItem {
 
     private _lastValue: string = ''
     private _currentValue: string = ''
-    private _typeTimeOut: number = 0
+    private _typetimeout: number = 0
 
     protected get lastValue(): string { return this._lastValue }
     protected get currentValue(): string { return this._currentValue }
@@ -26,8 +26,8 @@ namespace hp {
     }
 
     private startInputDelay(e: KeyboardEvent) {
-      clearTimeout(this._typeTimeOut)
-      this._typeTimeOut = setTimeout(() => this.inputDelay(new keyboard(e)), 300)
+      clearTimeout(this._typetimeout)
+      this._typetimeout = setTimeout(() => this.inputDelay(new keyboard(e)), 300)
     }
 
     private onInput(e: KeyboardEvent) {
@@ -41,20 +41,20 @@ namespace hp {
     }
 
     private onInputKeyDown(e: KeyboardEvent) {
-      if (typeof this.accepted == 'function' && this.element instanceof HTMLInputElement) {
+      if (typeof this.accept == 'function' && this.element instanceof HTMLInputElement) {
         let acceptKey = this.acceptKey || [13]
         acceptKey = !Array.isArray(acceptKey) ? [acceptKey] : acceptKey
         if (acceptKey.indexOf(e.keyCode) > -1) {
           e.preventDefault()
-          this.accepted(this.element.value)
+          this.accept(this.element.value)
         }
       }
-      if (typeof this.rejected == 'function' && this.element instanceof HTMLInputElement) {
+      if (typeof this.reject == 'function' && this.element instanceof HTMLInputElement) {
         let rejectKey = this.rejectKey || [27]
         rejectKey = !Array.isArray(rejectKey) ? [rejectKey] : rejectKey
         if (rejectKey.indexOf(e.keyCode) > -1) {
           e.preventDefault()
-          this.rejected(this.element.value)
+          this.reject(this.element.value)
         }
       }
     }

@@ -1,7 +1,7 @@
 // Creates a custom keybinding
 hp.keyboard.add('my keybinding', /\d|-/)
 
-class inputblock extends hp.input {
+class inputblock extends hp.text {
   keydown(keyboard) {
     // Blocks everything
     this.hasClass('all') && keyboard.block()

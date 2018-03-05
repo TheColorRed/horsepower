@@ -1,4 +1,4 @@
-class search extends hp.input {
+class search extends hp.text {
   // Once the input is created get a list of json items
   async created() {
     this.disable(true)

@@ -20,7 +20,7 @@ Whenever the value of `name` is changed in the rootScope, `onScopeName` will be 
 Anything that is bound to the scope items `name`, `first` and `last` in the dom will be updated when changed.
 
 ```js
-class model extends hp.input {
+class model extends hp.text {
   onScopeName(value) {
     let [first, last] = value.split(' ')
     this.rootScope.first = first || ''
