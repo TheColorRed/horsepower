@@ -41,20 +41,20 @@ namespace hp {
     }
 
     private onInputKeyDown(e: KeyboardEvent) {
-      if (typeof this.accept == 'function' && this.element instanceof HTMLInputElement) {
+      if (typeof this.accepted == 'function' && this.element instanceof HTMLInputElement) {
         let acceptKey = this.acceptKey || [13]
         acceptKey = !Array.isArray(acceptKey) ? [acceptKey] : acceptKey
         if (acceptKey.indexOf(e.keyCode) > -1) {
           e.preventDefault()
-          this.accept(this.element.value)
+          this.accepted(this.element.value)
         }
       }
-      if (typeof this.reject == 'function' && this.element instanceof HTMLInputElement) {
+      if (typeof this.rejected == 'function' && this.element instanceof HTMLInputElement) {
         let rejectKey = this.rejectKey || [27]
         rejectKey = !Array.isArray(rejectKey) ? [rejectKey] : rejectKey
         if (rejectKey.indexOf(e.keyCode) > -1) {
           e.preventDefault()
-          this.reject(this.element.value)
+          this.rejected(this.element.value)
         }
       }
     }

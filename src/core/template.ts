@@ -64,12 +64,13 @@ namespace hp.core {
       return element
     }
 
-    public process(element: Element, data: any, index: number, source: string, key: string, val: string) {
+    public process(element: Element, data: any, index: number | string, source: string, key: string, val: string) {
       // this.bindElement(element, data, index, source, key, val)
       Array.from(element.children).forEach(child => {
-        let hasFor = child.hasAttribute('hp-for')
+        let hasFor = child.hasAttribute('hp-for') || child.hasAttribute('hp-for-else')
         if (hasFor) {
           this.runFor(child, element, data)
+          // this.runIf(child, element, data)
         } else {
           this.bindElement(child, data, index, source, key, val)
           this.process(child, data, index, source, key, val)
@@ -86,33 +87,65 @@ namespace hp.core {
         let val = arg1 && !arg2 ? arg1 : arg2
         let newData = source == ':data' ? data : query(source, data)
         element.remove()
-        Array.isArray(newData) && newData.forEach((data, index) => {
-          let clone = element.cloneNode(true) as Element
-          parent.appendChild(clone)
-          clone.removeAttribute('hp-for')
-          this.bindElement(clone, data, index, source, key, val)
-          this.process(clone, data, index, source, key, val)
-        })
+        if (Array.isArray(newData)) {
+          newData.forEach((data, index) => {
+            this._makeNode(element, parent, data, index, source, key, val)
+          })
+        } else if (typeof newData == 'object') {
+          for (let index in newData) {
+            this._makeNode(element, parent, data, index, source, key, val)
+          }
+        }
+      } else if (element.hasAttribute('hp-for-else')) {
+        element.remove()
+        let source = element.getAttribute('hp-for-else') || ''
+        let newData = source == ':data' ? data : query(source, data)
+        if (
+          (Array.isArray(newData) && data.length == 0) ||
+          (typeof newData == 'object' && Object.keys(newData).length == 0)
+        ) {
+          this._makeNode(element, parent, data, -1, source, '', '')
+        }
       }
     }
 
-    private bindElement(element: Element, data: any, index: number, source: string, key: string, val: string) {
+    private _makeNode(element: Element, parent: Element, data: any, index: number | string, source: string, key: string, val: string) {
+      let clone = element.cloneNode(true) as Element
+      parent.appendChild(clone)
+      clone.removeAttribute('hp-for')
+      clone.removeAttribute('hp-for-else')
+      this.bindElement(clone, data, index, source, key, val)
+      this.process(clone, data, index, source, key, val)
+    }
+
+    // private runIf(element: Element, parent: Element, data: any) {
+    //   if (element.hasAttribute('hp-if')) {
+    //     let elIf = element.getAttribute('hp-if')
+    //   }
+    // }
+
+    private bindElement(element: Element, data: any, index: number | string, source: string, key: string, val: string) {
       let inlineBindings = this.inlineBindings(element)
       let rm = ''
       let selectorOrig = ''
       let selector: string[] = []
       let newSelector = ''
-      if (element.hasAttribute('hp-bind')) {
-        selectorOrig = element.getAttribute('hp-bind') as string
+      if (element.hasAttribute('hp-bind') || element.hasAttribute('hp-bind-html')) {
+        selectorOrig = element.getAttribute('hp-bind') || element.getAttribute('hp-bind-html') as string
         selector = selectorOrig.split('.')
         selector.length > 1 && (rm = selector.shift() || '')
         newSelector = selector.join('.')
-        let value = (selector.join('.') === key ? index.toString() : data[newSelector]).toString()
+        let value = selector.join('.') === key ? index : data[newSelector]
+        value = typeof value == 'function' ? value() : value.toString()
         if (rm.length == 0 || (rm.length > 0 && rm == val)) {
           if (component.isFormItem(element)) {
             element.value = value
           } else {
-            element.innerHTML = value
+            if (element.getAttribute('hp-bind-html')) {
+              element.innerHTML = value
+            } else {
+              element.textContent = value
+            }
           }
         }
       }
@@ -137,19 +170,18 @@ namespace hp.core {
 
     private replaceInlineBindings(node: Element, data: any, index: any, bindings: string[], key: string) {
       bindings.forEach(binding => {
+        let regexp = new RegExp(escapeRegExp(binding), 'g')
         let selector = binding.replace(/{{|}}/g, '').split('.')
         selector.length > 1 && selector.shift()
-        let value = ''
-        if (selector.join('.') === key) {
-          value = index.toString()
-        } else {
-          value = data instanceof Object ? data[selector.join('.')].toString() : data
-        }
+        let newSelector = selector.join('.')
+        let value = newSelector === key ? index : data[newSelector]
+        let finalValue = (typeof value == 'function' ? value() : value.toString()) as string
+        finalValue = finalValue.replace(/</g, '&lt;').replace(/>/g, '&gt;')
         for (let i = 0; i < node.attributes.length; i++) {
           let attr = node.attributes[i]
-          attr.value = attr.value.replace(new RegExp(escapeRegExp(binding), 'g'), value)
+          attr.value = attr.value.replace(regexp, finalValue)
         }
-        node.innerHTML = node.innerHTML.replace(new RegExp(escapeRegExp(binding), 'g'), value)
+        node.innerHTML = node.innerHTML.replace(regexp, finalValue)
       })
     }
 
