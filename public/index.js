@@ -36,7 +36,8 @@ app.get('/nav', (req, res) => {
     { name: 'Allow/Block Input', file: '/html/inputblock.html' },
     { name: 'Stopwatch', file: '/html/stopwatch.html' },
     { name: 'Shopping Cart', file: '/html/shoppingcart.html' },
-    { name: 'Disable Enable', file: '/html/disableEnable.html', active: true }
+    { name: 'Disable Enable', file: '/html/disableEnable.html' },
+    { name: 'Loops', file: '/html/loops.html', active: true }
   ].sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1))
 })
 

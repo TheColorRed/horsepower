@@ -81,20 +81,10 @@ namespace hp.core {
     private runFor(element: Element, parent: Element, data: any) {
       if (element.hasAttribute('hp-for')) {
         let elFor = element.getAttribute('hp-for') as string
-        let [value, source] = elFor.split(' in ').map(i => i.trim())
-        let [arg1, arg2] = value.split(',')
-        let key = arg1 && arg2 ? arg1 : ''
-        let val = arg1 && !arg2 ? arg1 : arg2
-        let newData = source == ':data' ? data : query(source, data)
-        element.remove()
-        if (Array.isArray(newData)) {
-          newData.forEach((data, index) => {
-            this._makeNode(element, parent, data, index, source, key, val)
-          })
-        } else if (typeof newData == 'object') {
-          for (let index in newData) {
-            this._makeNode(element, parent, data, index, source, key, val)
-          }
+        if (elFor.indexOf(' in ') > -1) {
+          this._forObjectArray(element, parent, elFor, data)
+        } else if (elFor.indexOf(' from ') > -1) {
+          this._forCount(element, parent, elFor, data)
         }
       } else if (element.hasAttribute('hp-for-else')) {
         element.remove()
@@ -105,6 +95,59 @@ namespace hp.core {
           (typeof newData == 'object' && Object.keys(newData).length == 0)
         ) {
           this._makeNode(element, parent, data, -1, source, '', '')
+        }
+      }
+    }
+
+    private _forCount(element: Element, parent: Element, elFor: string, data: any) {
+      let [key, count] = elFor.split(/ from /i).map(i => i.trim())
+      if (!key || !count) return
+      let [start, type, end] = count.split(/ (to|through) /i).map(i => i.toLowerCase().trim())
+      let increment = '1'
+      if (end.indexOf(' by ') > -1) {
+        [end, increment] = end.split(/ by /i).map(i => i.trim())
+      }
+      if (['to', 'through'].indexOf(type) == -1) return
+      element.remove()
+      let s = parseFloat(start)
+      let e = parseFloat(end)
+      let inc = parseInt(increment)
+      // end is exclusive
+      if (type == 'to') {
+        if (e > s) {
+          // Count up
+          for (let i = s; i < e; i += inc) { this._makeNode(element, parent, data, i, '', key, '') }
+        } else {
+          // Count down
+          for (let i = s; i > e; i -= inc) { this._makeNode(element, parent, data, i, '', key, '') }
+        }
+      }
+      // end is inclusive
+      else if (type == 'through') {
+        if (e > s) {
+          // Count up
+          for (let i = s; i <= e; i += inc) { this._makeNode(element, parent, data, i, '', key, '') }
+        } else {
+          // Count down
+          for (let i = s; i >= e; i -= inc) { this._makeNode(element, parent, data, i, '', key, '') }
+        }
+      }
+    }
+
+    private _forObjectArray(element: Element, parent: Element, elFor: string, data: any) {
+      let [value, source] = elFor.split(' in ').map(i => i.trim())
+      let [arg1, arg2] = value.split(',')
+      let key = arg1 && arg2 ? arg1 : ''
+      let val = arg1 && !arg2 ? arg1 : arg2
+      let newData = source == ':data' ? data : query(source, data)
+      element.remove()
+      if (Array.isArray(newData)) {
+        newData.forEach((data, index) => {
+          this._makeNode(element, parent, data, index, source, key, val)
+        })
+      } else if (typeof newData == 'object') {
+        for (let index in newData) {
+          this._makeNode(element, parent, data, index, source, key, val)
         }
       }
     }

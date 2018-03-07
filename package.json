@@ -27,6 +27,7 @@
     },
     "dependencies": {
         "compression": "^1.7.2",
+        "express": "^4.16.2",
         "node-sass": "^4.7.2"
     }
 }
