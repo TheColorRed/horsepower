@@ -1,8 +1,7 @@
 hp.observe('.loop-a', class extends hp.template {
   bind() {
     return {
-      template: `<div hp-for="index from 10 through 1">{{index}}</div>`,
-      data: ['Cat', 'Dog', 'Pig']
+      template: `<div hp-for="index from 0 through 10">{{index}}</div>`
     }
   }
 })

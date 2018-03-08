@@ -100,18 +100,15 @@ namespace hp.core {
     }
 
     private _forCount(element: Element, parent: Element, elFor: string, data: any) {
-      let [key, count] = elFor.split(/ from /i).map(i => i.trim())
-      if (!key || !count) return
-      let [start, type, end] = count.split(/ (to|through) /i).map(i => i.toLowerCase().trim())
-      let increment = '1'
-      if (end.indexOf(' by ') > -1) {
-        [end, increment] = end.split(/ by /i).map(i => i.trim())
-      }
-      if (['to', 'through'].indexOf(type) == -1) return
+      let [key, from, start, type, end, by, increment] = elFor.split(/ (from|to|through|by) /i).map(i => i.trim())
+      let s = 0, e = 1, inc = 1
+      s = parseFloat(start.match(/[a-zA-Z]+/) ? data[start] : start)
+      e = parseFloat(end.match(/[a-zA-Z]+/) ? data[end] : end)
+      inc = parseFloat(increment || '1')
+      // Make sure 'from' and 'to' or 'through' are used and optionally 'by'
+      if (by) by = by.toLowerCase()
+      if (from.toLowerCase() != 'from' || ['by', undefined].indexOf(by) == -1 || ['to', 'through'].indexOf(type.toLowerCase()) == -1) return
       element.remove()
-      let s = parseFloat(start)
-      let e = parseFloat(end)
-      let inc = parseInt(increment)
       // end is exclusive
       if (type == 'to') {
         if (e > s) {
@@ -218,6 +215,7 @@ namespace hp.core {
         selector.length > 1 && selector.shift()
         let newSelector = selector.join('.')
         let value = newSelector === key ? index : data[newSelector]
+        value = (Array.isArray(data) && newSelector === key ? data[value] : value) || ''
         let finalValue = (typeof value == 'function' ? value() : value.toString()) as string
         finalValue = finalValue.replace(/</g, '&lt;').replace(/>/g, '&gt;')
         for (let i = 0; i < node.attributes.length; i++) {
