@@ -275,20 +275,21 @@ namespace hp.core {
         let regexp = new RegExp(escapeRegExp(binding), 'g')
         let selector = binding.replace(/{{|}}/g, '').split('.')
         // console.log(this.getLocation(selector[0]))
-        console.log('s', selector)
-        console.log(this.getPath(selector).join('.'))
+        // console.log('s', selector, JSON.stringify(this.dataScope))
+        console.log(selector, this.getPath(selector).join('.'))
       })
     }
 
     private getPath(items: string[]) {
-      // console.log(items)
       let path: string[] = []
       let item = items.shift()
       if (item) {
         let loc = this.getLocation(item)
         if (loc.length > 0 && loc.join('.') != ':data') {
-          path.push(...this.getPath(loc))
+          path.push(...loc)
+          this.getPath(loc)
         }
+        path.push(...items)
       }
       return path
     }
